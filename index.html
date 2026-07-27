@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Children's Home Dashboard 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --primary:#4f46e5;--primary-light:#818cf8;--primary-dark:#3730a3;
+  --girl-color:#ec4899;--boy-color:#3b82f6;
+  --card-bg:#ffffff;--text:#1e293b;--text-light:#64748b;
+  --border:#e2e8f0;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--teal:#14b8a6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#e0e7ff 0%,#f0f4ff 50%,#fce7f3 100%);min-height:100vh;color:var(--text);}
+
+/* PASSWORD */
+#passwordScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#9333ea 100%);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+#passwordScreen.hidden{display:none;}
+.password-box{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:380px;max-width:90%;text-align:center;}
+.password-box h2{font-size:1.5rem;font-weight:800;margin-bottom:8px;color:var(--text);}
+.password-box p{font-size:0.9rem;color:var(--text-light);margin-bottom:24px;}
+.password-box .lock-icon{font-size:3rem;margin-bottom:16px;}
+.password-input{width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:10px;font-size:1rem;outline:none;transition:border-color 0.2s;text-align:center;letter-spacing:2px;margin-bottom:12px;}
+.password-input:focus{border-color:var(--primary);}
+.password-input.error{border-color:var(--red);animation:shake 0.4s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-8px);}75%{transform:translateX(8px);}}
+.password-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;font-size:1rem;font-weight:700;cursor:pointer;transition:transform 0.15s;}
+.password-btn:hover{transform:translateY(-1px);}
+.password-error-msg{color:var(--red);font-size:0.85rem;margin-top:12px;min-height:20px;}
+.logout-btn{position:fixed;top:20px;right:20px;z-index:100;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;backdrop-filter:blur(10px);}
+.logout-btn:hover{background:rgba(255,255,255,0.35);}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#9333ea 100%);color:white;padding:40px 40px 30px;position:relative;overflow:hidden;}
+.header::before{content:'';position:absolute;top:-50%;right:-10%;width:500px;height:500px;background:rgba(255,255,255,0.08);border-radius:50%;}
+.header::after{content:'';position:absolute;bottom:-60%;left:-5%;width:400px;height:400px;background:rgba(255,255,255,0.06);border-radius:50%;}
+.header-content{position:relative;z-index:1;max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.header-text h1{font-size:2.2rem;font-weight:800;margin-bottom:8px;letter-spacing:-0.5px;}
+.header-text p{font-size:1.1rem;opacity:0.9;}
+.header-text .badge{display:inline-block;background:rgba(255,255,255,0.2);padding:4px 16px;border-radius:20px;font-size:0.85rem;margin-top:12px;backdrop-filter:blur(10px);}
+.header-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.header-actions button{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.3);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;backdrop-filter:blur(10px);transition:background 0.15s;}
+.header-actions button:hover{background:rgba(255,255,255,0.35);}
+
+/* KPI */
+.kpi-row{max-width:1400px;margin:-25px auto 0;padding:0 40px;position:relative;z-index:2;display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
+.kpi-card{background:var(--card-bg);border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.08);text-align:center;transition:transform 0.2s,box-shadow 0.2s;border:1px solid var(--border);}
+.kpi-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,0.12);}
+.kpi-icon{font-size:2rem;margin-bottom:8px;}
+.kpi-value{font-size:2rem;font-weight:800;line-height:1;}
+.kpi-label{font-size:0.8rem;color:var(--text-light);margin-top:6px;font-weight:500;}
+.kpi-card.total .kpi-value{color:var(--primary);}
+.kpi-card.girls .kpi-value{color:var(--girl-color);}
+.kpi-card.boys .kpi-value{color:var(--boy-color);}
+.kpi-card.active .kpi-value{color:var(--green);}
+.kpi-card.restored .kpi-value{color:var(--orange);}
+.kpi-card.age .kpi-value{color:var(--purple);}
+
+/* MAIN */
+.main{max-width:1400px;margin:0 auto;padding:30px 40px 60px;}
+.chart-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:20px;}
+.chart-grid.two{grid-template-columns:repeat(2,1fr);}
+.chart-card{background:var(--card-bg);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid var(--border);transition:box-shadow 0.2s;}
+.chart-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.1);}
+.chart-card h3{font-size:1.05rem;font-weight:700;margin-bottom:4px;color:var(--text);display:flex;align-items:center;gap:8px;justify-content:space-between;}
+.chart-card h3 .print-btn{font-size:0.75rem;background:#f1f5f9;border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text-light);}
+.chart-card h3 .print-btn:hover{background:#e2e8f0;color:var(--text);}
+.chart-card .subtitle{font-size:0.8rem;color:var(--text-light);margin-bottom:16px;}
+.chart-container{position:relative;height:280px;}
+.chart-container.tall{height:340px;}
+.section-title{font-size:1.3rem;font-weight:700;margin:30px 0 16px;color:var(--text);display:flex;align-items:center;gap:10px;}
+.section-title::before{content:'';width:4px;height:24px;background:linear-gradient(180deg,var(--primary),var(--purple));border-radius:4px;}
+.section-title:first-child{margin-top:0;}
+.section-title .badge-count{font-size:0.85rem;font-weight:600;background:#eef2ff;color:var(--primary);padding:2px 12px;border-radius:12px;}
+
+/* TABLE */
+.table-card{background:var(--card-bg);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border:1px solid var(--border);overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:0.8rem;}
+th{text-align:left;padding:12px 12px;background:#f8fafc;color:var(--text-light);font-weight:600;border-bottom:2px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:5;}
+td{padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap;}
+tr:hover td{background:#f8fafc;}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:600;}
+.status-active{background:#d1fae5;color:#065f46;}
+.status-restored{background:#fef3c7;color:#92400e;}
+.status-notactive{background:#fee2e2;color:#991b1b;}
+.status-unknown{background:#e0e7ff;color:#3730a3;}
+@media(max-width:1200px){.kpi-row{grid-template-columns:repeat(3,1fr);}.chart-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr);padding:0 20px;}.chart-grid,.chart-grid.two{grid-template-columns:1fr;}.header{padding:30px 20px;}.main{padding:20px;}.header-text h1{font-size:1.6rem;}}
+.footer{text-align:center;padding:30px;color:var(--text-light);font-size:0.85rem;}
+.search-bar{margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.search-bar input,.search-bar select{padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;outline:none;transition:border-color 0.2s;}
+.search-bar input:focus,.search-bar select:focus{border-color:var(--primary);}
+.search-bar input{flex:1;min-width:200px;}
+.btn-add{background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;padding:8px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:transform 0.15s,box-shadow 0.15s;}
+.btn-add:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,0.35);}
+.btn-action{border:none;padding:5px 10px;border-radius:6px;font-size:0.74rem;font-weight:600;cursor:pointer;transition:all 0.15s;margin:0 2px;}
+.btn-edit{background:#dbeafe;color:#1d4ed8;}
+.btn-edit:hover{background:#bfdbfe;}
+.btn-delete{background:#fee2e2;color:#dc2626;}
+.btn-delete:hover{background:#fecaca;}
+.action-cell{white-space:nowrap;text-align:center;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto;}
+.modal-overlay.active{display:flex;}
+.modal-dialog{background:white;border-radius:16px;width:100%;max-width:680px;box-shadow:0 20px 60px rgba(0,0,0,0.25);animation:modalSlide 0.25s ease;margin:auto;}
+@keyframes modalSlide{from{transform:translateY(-20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-header{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;padding:20px 24px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center;}
+.modal-header h2{font-size:1.2rem;font-weight:700;}
+.modal-close{background:rgba(255,255,255,0.2);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.modal-close:hover{background:rgba(255,255,255,0.35);}
+.modal-body{padding:24px;max-height:65vh;overflow-y:auto;}
+.modal-footer{padding:16px 24px 24px;display:flex;gap:12px;justify-content:flex-end;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-size:0.88rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;font-family:inherit;background:white;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,0.1);}
+.form-group textarea{resize:vertical;min-height:50px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-row.three{grid-template-columns:1fr 1fr 1fr;}
+@media(max-width:600px){.form-row,.form-row.three{grid-template-columns:1fr;}}
+.btn-save{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;border:none;padding:10px 24px;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:transform 0.15s;}
+.btn-save:hover{transform:translateY(-1px);}
+.btn-cancel{background:#f1f5f9;color:var(--text);border:1px solid var(--border);padding:10px 24px;border-radius:8px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:background 0.15s;}
+.btn-cancel:hover{background:#e2e8f0;}
+.toast{position:fixed;bottom:30px;right:30px;background:var(--text);color:white;padding:14px 24px;border-radius:10px;font-size:0.88rem;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,0.25);z-index:2000;transform:translateX(450px);transition:transform 0.3s ease;}
+.toast.show{transform:translateX(0);}
+.toast.success{background:#059669;}
+.toast.error{background:#dc2626;}
+.toast.info{background:#4f46e5;}
+
+/* PRINT */
+@media print{
+  #passwordScreen,.logout-btn,.header-actions,.btn-add,.btn-action,.search-bar,.modal-overlay,.toast,.print-btn{display:none!important;}
+  body{background:white!important;}
+  .header{background:#4f46e5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .kpi-card,.chart-card,.table-card{box-shadow:none!important;border:1px solid #ccc!important;break-inside:avoid;}
+  .chart-grid{grid-template-columns:repeat(3,1fr)!important;gap:10px!important;}
+  .chart-grid.two{grid-template-columns:repeat(2,1fr)!important;}
+  .chart-container{height:220px!important;}
+  .chart-container.tall{height:260px!important;}
+  .main{padding:10px!important;}
+  .footer{padding:10px!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD SCREEN -->
+<div id="passwordScreen">
+  <div class="password-box">
+    <div class="lock-icon" id="pwdLockIcon">&#128274;</div>
+    <h2 id="pwdTitle">Dashboard Access</h2>
+    <p id="pwdSubtitle">Children's Home Dashboard 2026</p>
+    <input type="password" class="password-input" id="pwdInput1" placeholder="Enter password" onkeydown="if(event.key==='Enter')handlePassword()">
+    <input type="password" class="password-input" id="pwdInput2" style="display:none;" placeholder="Confirm password" onkeydown="if(event.key==='Enter')handlePassword()">
+    <button class="password-btn" id="pwdBtn" onclick="handlePassword()">Unlock Dashboard</button>
+    <div class="password-error-msg" id="pwdError"></div>
+  </div>
+</div>
+
+<button class="logout-btn" id="logoutBtn" style="display:none;" onclick="logout()">&#128274; Lock</button>
+
+<!-- DASHBOARD CONTENT -->
+<div id="dashboardContent" style="display:none;">
+<div class="header">
+  <div class="header-content">
+    <div class="header-text">
+      <h1>&#127968; Children's Home Dashboard</h1>
+      <p>Comprehensive Overview of All Houses &#8212; Boys &amp; Girls Details 2026</p>
+      <span class="badge">&#128202; 250 Children &#183; 13 Houses &#183; Updated July 2026</span>
+    </div>
+    <div class="header-actions">
+      <button onclick="window.print()">&#128424; Print</button>
+      <button onclick="exportData('json')">&#11015; Export JSON</button>
+      <button onclick="exportData('csv')">&#11015; Export CSV</button>
+      <button onclick="document.getElementById('importFile').click()">&#11014; Import</button>
+      <input type="file" id="importFile" style="display:none;" accept=".json,.csv" onchange="importData(event)">
+      <button onclick="openPwdChangeModal()">&#128274; Change Password</button>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi-card total"><div class="kpi-icon">&#128101;</div><div class="kpi-value">250</div><div class="kpi-label">Total Children</div></div>
+  <div class="kpi-card girls"><div class="kpi-icon">&#128103;</div><div class="kpi-value">96</div><div class="kpi-label">Girls</div></div>
+  <div class="kpi-card boys"><div class="kpi-icon">&#128102;</div><div class="kpi-value">154</div><div class="kpi-label">Boys</div></div>
+  <div class="kpi-card active"><div class="kpi-icon">&#9989;</div><div class="kpi-value">208</div><div class="kpi-label">Active + Active but Restored</div></div>
+  <div class="kpi-card restored"><div class="kpi-icon">&#127968;</div><div class="kpi-value">42</div><div class="kpi-label">Exited (Restored/Transferred/Not Active)</div></div>
+  <div class="kpi-card age"><div class="kpi-icon">&#128197;</div><div class="kpi-value">13.7</div><div class="kpi-label">Avg Age (yrs)</div></div>
+</div>
+
+<div class="main">
+  <div class="section-title">Active Children Overview <span class="badge-count" id="activeCount">208 children</span></div>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>&#128103;&#128102; Gender Distribution</h3><div class="subtitle">Active children only</div><div class="chart-container"><canvas id="genderChart"></canvas></div></div>
+    <div class="chart-card"><h3>&#128202; Age Group Distribution</h3><div class="subtitle">Active children only</div><div class="chart-container"><canvas id="ageChart"></canvas></div></div>
+    <div class="chart-card"><h3>&#128203; Active vs Active but Restored</h3><div class="subtitle">Current active status breakdown</div><div class="chart-container"><canvas id="activeStatusChart"></canvas></div></div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card"><h3>&#128106; Parental Status</h3><div class="subtitle">Active children only</div><div class="chart-container"><canvas id="parentalChart"></canvas></div></div>
+    <div class="chart-card"><h3>&#128218; Medium of Instruction</h3><div class="subtitle">Active children only</div><div class="chart-container"><canvas id="mediumChart"></canvas></div></div>
+    <div class="chart-card"><h3>&#127891; Education Level Categories</h3><div class="subtitle">Active children only</div><div class="chart-container tall"><canvas id="eduChart"></canvas></div></div>
+  </div>
+  <div class="chart-grid two">
+    <div class="chart-card"><h3>&#127968; Children per House (by Gender)</h3><div class="subtitle">Active children only</div><div class="chart-container tall"><canvas id="houseGenderChart"></canvas></div></div>
+    <div class="chart-card"><h3>&#129656; Blood Group Distribution</h3><div class="subtitle">Active children only</div><div class="chart-container"><canvas id="bloodChart"></canvas></div></div>
+  </div>
+
+  <div class="section-title">Exited Children Analysis <span class="badge-count" id="exitedCount">42 children</span></div>
+  <div class="chart-grid three">
+    <div class="chart-card"><h3>&#9989; Active</h3><div class="subtitle">Currently active children</div><div class="chart-container"><canvas id="chartActive"></canvas></div></div>
+    <div class="chart-card"><h3>&#127968; Restored</h3><div class="subtitle">Children restored to families</div><div class="chart-container"><canvas id="chartRestored"></canvas></div></div>
+    <div class="chart-card"><h3>&#10060; Not Active</h3><div class="subtitle">Children no longer active</div><div class="chart-container"><canvas id="chartNotActive"></canvas></div></div>
+  </div>
+  <div class="chart-grid two">
+    <div class="chart-card"><h3>&#128260; Transferred</h3><div class="subtitle">Children transferred to other facilities</div><div class="chart-container"><canvas id="chartTransferred"></canvas></div></div>
+    <div class="chart-card"><h3>&#128197; Admissions by Year (All Children)</h3><div class="subtitle">Year-wise admission count</div><div class="chart-container tall"><canvas id="admissionYearChart"></canvas></div></div>
+  </div>
+
+  <div class="section-title">Institutions</div>
+  <div class="chart-grid two">
+    <div class="chart-card"><h3>&#127979; Top 15 Institutions</h3><div class="subtitle">Active children only</div><div class="chart-container tall"><canvas id="institutionChart"></canvas></div></div>
+    <div class="chart-card"><h3>&#128203; Status by Gender</h3><div class="subtitle">All children breakdown</div><div class="chart-container"><canvas id="statusGenderChart"></canvas></div></div>
+  </div>
+
+  <div class="section-title">Children Directory</div>
+  <div class="table-card">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="&#128269; Search by name..." oninput="filterTable()">
+      <select id="genderFilter" onchange="filterTable()"><option value="">All Genders</option><option value="Girl">Girls</option><option value="Boy">Boys</option></select>
+      <select id="statusFilter" onchange="filterTable()"><option value="">All Status</option><option value="Active">Active</option><option value="Active but Restored">Active but Restored</option><option value="Restored">Restored</option><option value="Not Active">Not Active</option><option value="Transferred">Transferred</option><option value="Transfered">Transfered</option></select>
+      <select id="houseFilter" onchange="filterTable()"><option value="">All Houses</option></select>
+      <button class="btn-add" onclick="openModal('add')">&#10133; Add Child</button>
+    </div>
+    <div style="margin-bottom:12px;font-size:0.8rem;color:var(--text-light);">&#128190; Changes auto-save in browser &#183; Use Export to backup data &#183; Use Import to restore</div>
+    <table id="dataTable">
+      <thead><tr>
+        <th>Sr. No.</th><th>Reg. No.</th><th>Name Of Child</th><th>Gender</th><th>Age</th><th>DOB</th><th>House</th><th>Status</th><th>Parental Status</th><th>DOA</th><th>DOR</th><th>Restoration Date</th><th>Class</th><th>MEDIUM</th><th>Institution Name</th><th>Case No.</th><th>Blood Group</th><th>Aadhar No.</th><th>Remark</th><th style="text-align:center;">Actions</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">Children's Home Dashboard 2026 &#183; Generated from Boys &amp; Girls Details Excel Sheets &#183; Data as of July 2026</div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-dialog">
+    <div class="modal-header"><h2 id="modalTitle">Add Child</h2><button class="modal-close" onclick="closeModal()">&#10005;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editIndex" value="-1">
+      <div class="form-row"><div class="form-group"><label>Name Of Child *</label><input type="text" id="fName" placeholder="Enter full name"></div><div class="form-group"><label>Reg. No.</label><input type="text" id="fRegNo" placeholder="e.g. 4884"></div></div>
+      <div class="form-row three"><div class="form-group"><label>Gender *</label><select id="fGender"><option value="Girl">Girl</option><option value="Boy">Boy</option></select></div><div class="form-group"><label>Age</label><input type="number" id="fAge" placeholder="e.g. 12" min="0" max="25"></div><div class="form-group"><label>DOB</label><input type="text" id="fDob" placeholder="YYYY-MM-DD"></div></div>
+      <div class="form-row"><div class="form-group"><label>House</label><select id="fHouse"><option value="House 8">House 8</option><option value="House 9">House 9</option><option value="House 10">House 10</option><option value="House 15">House 15</option><option value="House 16">House 16</option><option value="Studies Outside">Studies Outside</option><option value="House no 03">House no 03</option><option value="House No 04">House No 04</option><option value="House no 05">House no 05</option><option value="House no 06">House no 06</option><option value="House no 7">House no 7</option><option value="House No 11">House No 11</option><option value="House No 12">House No 12</option><option value="Vasai House">Vasai House</option></select></div><div class="form-group"><label>Status</label><select id="fStatus"><option value="Active">Active</option><option value="Active but Restored">Active but Restored</option><option value="Restored">Restored</option><option value="Not Active">Not Active</option><option value="Transferred">Transferred</option><option value="Transfered">Transfered</option><option value="Non CWC">Non CWC</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label>Parental Status</label><select id="fParental"><option value="Both Parents">Both Parents</option><option value="Single Parent">Single Parent</option><option value="Orphan">Orphan</option></select></div><div class="form-group"><label>Blood Group</label><select id="fBlood"><option value="">&#8212;</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option><option value="O+">O+</option><option value="O-">O-</option></select></div></div>
+      <div class="form-row three"><div class="form-group"><label>DOA</label><input type="text" id="fDoa" placeholder="YYYY-MM-DD"></div><div class="form-group"><label>DOR</label><input type="text" id="fDor" placeholder="YYYY-MM-DD"></div><div class="form-group"><label>Restoration Date</label><input type="text" id="fRestoration" placeholder="YYYY-MM-DD"></div></div>
+      <div class="form-row"><div class="form-group"><label>Class</label><input type="text" id="fClass" placeholder="e.g. Class 5, Nursing"></div><div class="form-group"><label>MEDIUM</label><select id="fMedium"><option value="">&#8212;</option><option value="English">English</option><option value="Hindi">Hindi</option><option value="Marathi">Marathi</option><option value="Semi-Hindi">Semi-Hindi</option><option value="Semi-Marathi">Semi-Marathi</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label>Institution Name</label><input type="text" id="fInstitution" placeholder="e.g. Sunflower School"></div><div class="form-group"><label>Case No.</label><input type="text" id="fCaseNo" placeholder="e.g. 516/A/2023"></div></div>
+      <div class="form-row"><div class="form-group"><label>Aadhar No.</label><input type="text" id="fAadhar" placeholder="e.g. 5975 0475 1519"></div></div>
+      <div class="form-group"><label>Remark</label><textarea id="fRemark" placeholder="Any additional notes..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button class="btn-save" id="modalSaveBtn" onclick="saveChild()">Save</button></div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="pwdModal" onclick="if(event.target===this)closePwdModal()">
+  <div class="modal-dialog" style="max-width:420px;">
+    <div class="modal-header"><h2>&#128274; Change Password</h2><button class="modal-close" onclick="closePwdModal()">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Current Password</label><input type="password" id="pwdCurrent" placeholder="Enter current password"></div>
+      <div class="form-group"><label>New Password</label><input type="password" id="pwdNew" placeholder="Enter new password"></div>
+      <div class="form-group"><label>Confirm New Password</label><input type="password" id="pwdConfirm" placeholder="Re-enter new password"></div>
+      <div id="pwdChangeError" style="color:var(--red);font-size:0.85rem;min-height:20px;"></div>
+    </div>
+    <div class="modal-footer"><button class="btn-cancel" onclick="closePwdModal()">Cancel</button><button class="btn-save" onclick="changePassword()">Update Password</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== PASSWORD MANAGEMENT =====
+var PWD_KEY='dashboardPwd2026';
+var AUTH_KEY='dashboardAuth2026';
+
+function getStoredPassword(){
+  try{return localStorage.getItem(PWD_KEY);}catch(e){return null;}
+}
+function setStoredPassword(pwd){
+  try{localStorage.setItem(PWD_KEY,pwd);}catch(e){}
+}
+function isAuthed(){
+  try{return sessionStorage.getItem(AUTH_KEY)==='1';}catch(e){return false;}
+}
+function setAuthed(val){
+  try{if(val)sessionStorage.setItem(AUTH_KEY,'1');else sessionStorage.removeItem(AUTH_KEY);}catch(e){}
+}
+
+function initPasswordScreen(){
+  var hasPwd=getStoredPassword();
+  var title=document.getElementById('pwdTitle');
+  var subtitle=document.getElementById('pwdSubtitle');
+  var btn=document.getElementById('pwdBtn');
+  var input2=document.getElementById('pwdInput2');
+  var lockIcon=document.getElementById('pwdLockIcon');
+  if(hasPwd){
+    title.textContent='Dashboard Access';
+    subtitle.textContent='Enter your password to continue';
+    btn.textContent='Unlock Dashboard';
+    input2.style.display='none';
+    document.getElementById('pwdInput1').placeholder='Enter password';
+  }else{
+    title.textContent='Set Your Password';
+    subtitle.textContent='First time setup - create a password';
+    btn.textContent='Set Password';
+    input2.style.display='block';
+    document.getElementById('pwdInput1').placeholder='Create password';
+    document.getElementById('pwdInput2').placeholder='Confirm password';
+  }
+}
+
+function handlePassword(){
+  var hasPwd=getStoredPassword();
+  var p1=document.getElementById('pwdInput1').value;
+  var p2=document.getElementById('pwdInput2').value;
+  var err=document.getElementById('pwdError');
+  if(hasPwd){
+    if(p1===hasPwd){
+      unlock();
+    }else{
+      err.textContent='\u274C Incorrect password!';
+      shakeInput('pwdInput1');
+      document.getElementById('pwdInput1').value='';
+    }
+  }else{
+    if(!p1||p1.length<4){err.textContent='Password must be at least 4 characters.';return;}
+    if(p1!==p2){err.textContent='Passwords do not match.';shakeInput('pwdInput2');return;}
+    setStoredPassword(p1);
+    unlock();
+  }
+}
+
+function unlock(){
+  document.getElementById('passwordScreen').classList.add('hidden');
+  document.getElementById('dashboardContent').style.display='block';
+  document.getElementById('logoutBtn').style.display='block';
+  setAuthed(true);
+  document.getElementById('pwdError').textContent='';
+  document.getElementById('pwdInput1').value='';
+  document.getElementById('pwdInput2').value='';
+  initDashboard();
+}
+
+function logout(){
+  setAuthed(false);
+  document.getElementById('passwordScreen').classList.remove('hidden');
+  document.getElementById('dashboardContent').style.display='none';
+  document.getElementById('logoutBtn').style.display='none';
+  initPasswordScreen();
+  document.getElementById('pwdInput1').focus();
+}
+
+function shakeInput(id){
+  var el=document.getElementById(id);
+  el.classList.add('error');
+  setTimeout(function(){el.classList.remove('error');},500);
+  el.value='';
+  el.focus();
+}
+
+function openPwdChangeModal(){
+  document.getElementById('pwdCurrent').value='';
+  document.getElementById('pwdNew').value='';
+  document.getElementById('pwdConfirm').value='';
+  document.getElementById('pwdChangeError').textContent='';
+  document.getElementById('pwdModal').classList.add('active');
+  document.getElementById('pwdCurrent').focus();
+}
+function closePwdModal(){document.getElementById('pwdModal').classList.remove('active');}
+
+function changePassword(){
+  var cur=document.getElementById('pwdCurrent').value;
+  var np=document.getElementById('pwdNew').value;
+  var cp=document.getElementById('pwdConfirm').value;
+  var err=document.getElementById('pwdChangeError');
+  var stored=getStoredPassword();
+  if(cur!==stored){err.textContent='Current password is incorrect.';return;}
+  if(!np||np.length<4){err.textContent='New password must be at least 4 characters.';return;}
+  if(np!==cp){err.textContent='New passwords do not match.';return;}
+  setStoredPassword(np);
+  closePwdModal();
+  showToast('\u2705 Password changed successfully!','success');
+}
+
+// Init password screen
+initPasswordScreen();
+if(isAuthed()){unlock();}
+else{document.getElementById('pwdInput1').focus();}
+</script>
+<script>
+const stats = {"total": 250, "girls_count": 96, "boys_count": 154, "active_count": 183, "restored_count": 42, "not_active_count": 14, "avg_age": 13.7, "status": {"Active": 183, "Restored": 17, "Active but Restored": 25, "Unknown": 7, "Not Active": 14, "Non CWC": 1, "Transfered": 3}, "parental": {"Orphan": 57, "Single Parent": 93, "Both Parents": 93, "Unknown": 7}, "medium": {"English": 82, "Hindi": 48, "Marathi": 62, "Semi-Marathi": 4, "Semi-Hindi": 5}, "age_groups": {"7-10": 40, "11-14": 94, "15-18": 68, "18+": 26, "0-6": 7}, "blood": {"B+": 49, "O+": 59, "A-": 2, "A+": 24, "AB+": 10}, "house": {"House 8": 27, "House 9": 30, "House 10": 11, "House 15": 11, "House 16": 14, "Studies Outside": 3, "House no 03": 35, "House No 04": 18, "House no 06": 12, "House no 7": 27, "House No 11": 14, "House No 12": 29, "Vasai House": 19}, "institutions": {"Sunflower School": 35, "Vasudev School": 20, "St. Catherine's School": 18, "St. Xavier's School, Manikpur": 17, "Holy Family School": 14, "BMC Gundawali School": 13, "S.M.T. Bafna Jr. College": 11, "Swami Vivekananda School": 10, "Hotel": 9, "NIOS": 7, "English": 7, "Marathi": 7, "Sathay Jr. College": 6, "LaljiMohtra Tech. Inst.": 5, "Holy Family Jr. College": 4}, "edu_categories": {"Primary (1-3)": 69, "Middle (6-7)": 45, "Secondary (8-10)": 38, "Nursing": 7, "College / Degree": 7, "Vocational": 5, "Higher Secondary (11-12)": 4, "Other": 17, "Primary (4-5)": 23, "NIOS": 6, "Working": 20, "Pre-Primary": 8, "Internship": 1}, "gender_by_house": {"House 8": {"Girl": 27, "Boy": 0}, "House 9": {"Girl": 30, "Boy": 0}, "House 10": {"Girl": 11, "Boy": 0}, "House 15": {"Girl": 11, "Boy": 0}, "House 16": {"Girl": 14, "Boy": 0}, "Studies Outside": {"Girl": 3, "Boy": 0}, "House no 03": {"Girl": 0, "Boy": 35}, "House No 04": {"Girl": 0, "Boy": 18}, "House no 06": {"Girl": 0, "Boy": 12}, "House no 7": {"Girl": 0, "Boy": 27}, "House No 11": {"Girl": 0, "Boy": 14}, "House No 12": {"Girl": 0, "Boy": 29}, "Vasai House": {"Girl": 0, "Boy": 19}}, "gender_by_status": {"Active": {"Girl": 68, "Boy": 115}, "Restored": {"Girl": 8, "Boy": 9}, "Active but Restored": {"Girl": 12, "Boy": 13}, "Unknown": {"Girl": 4, "Boy": 3}, "Not Active": {"Girl": 4, "Boy": 10}, "Non CWC": {"Girl": 0, "Boy": 1}, "Transfered": {"Girl": 0, "Boy": 3}}, "parental_by_gender": {"Orphan": {"Girl": 22, "Boy": 35}, "Single Parent": {"Girl": 35, "Boy": 58}, "Both Parents": {"Girl": 35, "Boy": 58}, "Unknown": {"Girl": 4, "Boy": 3}}};
+
+// ===== FULL DATA =====
+const allChildren = [
+  {"name": "Tina Mannu Kaul", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Orphan", "class": "Class 3", "medium": "English", "institution": "Sunflower School", "blood": null, "dob": "2018-06-29", "doa": "25-08-2023", "dor": "25-08-2026", "caseNo": "516/A/2023", "aadhar": "5975 0475 1519", "restorationDate": null, "remark": null, "age": 8, "regNo": 4884},
+  {"name": "Mary Aayappam Kaundar", "gender": "Girl", "house": "House 8", "status": "Restored", "parental": "Single Parent", "class": "Class 3", "medium": "Hindi", "institution": "Sunflower School", "blood": null, "dob": "2016-08-27", "doa": "2022-05-09", "dor": "17-09-2026", "caseNo": null, "aadhar": "4314 1782 4215", "restorationDate": "2025-11-25", "remark": "Handed over to her elder sister", "age": 9, "regNo": 4777},
+  {"name": "Reena Mannu Kaul", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Orphan", "class": "Class 6", "medium": "Hindi", "institution": "Sunflower School", "blood": "B+", "dob": "2015-09-09", "doa": "2021-06-04", "dor": "21-04-2027", "caseNo": "/A/2021", "aadhar": "5316 6729 7389", "restorationDate": null, "remark": null, "age": 10, "regNo": 4639},
+  {"name": "Jaspreet Bachhan Singh", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Both Parents", "class": "Class 6", "medium": "Hindi", "institution": "Sunflower School", "blood": null, "dob": "2014-11-28", "doa": "19-04-2022", "dor": "18-04-2027", "caseNo": "26/A/2022", "aadhar": "2455 6076 2442", "restorationDate": null, "remark": "Adhar is with mother", "age": 11, "regNo": 4710},
+  {"name": "Namrata Sachin Kunte", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Both Parents", "class": "Class 6", "medium": "Hindi", "institution": "Sunflower School", "blood": null, "dob": "2014-01-27", "doa": "23-05-2022", "dor": "23-05-2027", "caseNo": "77/A/2022", "aadhar": "8070 6145 1737", "restorationDate": null, "remark": null, "age": 12, "regNo": 4717},
+  {"name": "Anushka Sanju Pawar", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "Marathi", "institution": "St. Catherine's School", "blood": null, "dob": "2013-08-26", "doa": "25-08-2022", "dor": "2026-10-08", "caseNo": null, "aadhar": "5070 7288 6090", "restorationDate": null, "remark": null, "age": 12, "regNo": 4765},
+  {"name": "Ragani Yadav", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": "Hindi", "institution": "Sunflower School", "blood": null, "dob": "2013-03-05", "doa": "14-03-2022", "dor": "2027-01-04", "caseNo": null, "aadhar": "8959 8546 4063", "restorationDate": null, "remark": null, "age": 13, "regNo": 4699},
+  {"name": "Vijaylaxmi Kaundar", "gender": "Girl", "house": "House 8", "status": "Restored", "parental": "Single Parent", "class": "Class 7", "medium": "Marathi", "institution": "St. Catherine's School", "blood": null, "dob": "2012-08-27", "doa": "2022-05-09", "dor": "17-09-2026", "caseNo": null, "aadhar": "9292 9679 7692", "restorationDate": "2025-11-25", "remark": "Handed over to her elder sister", "age": 13, "regNo": 4778},
+  {"name": "Sapna Sanjay durve", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Orphan", "class": "Class 9", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "O+", "dob": "2012-03-30", "doa": "22-06-2018", "dor": "20-01-2027", "caseNo": "225/P/2018", "aadhar": "8562 5530 7715", "restorationDate": null, "remark": null, "age": 14, "regNo": 4503},
+  {"name": "Manali Bhausaheb Aapkare", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Both Parents", "class": "Class 10", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "A-", "dob": "2011-09-06", "doa": "22-06-2018", "dor": "20-01-2027", "caseNo": "400/A/2018", "aadhar": "9515 1294 6188", "restorationDate": null, "remark": null, "age": 14, "regNo": 4504},
+  {"name": "Simran Jethithor", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "B+", "dob": "2010-11-11", "doa": "2017-11-07", "dor": "29-06-2027", "caseNo": "360/A/2017", "aadhar": "8251 8869 8200", "restorationDate": null, "remark": null, "age": 15, "regNo": 4490},
+  {"name": "Reeta Mannu Kaul", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Orphan", "class": "Class 9", "medium": "Hindi", "institution": "Sunflower School", "blood": "B+", "dob": "2009-07-23", "doa": "2021-06-04", "dor": "21-04-2027", "caseNo": null, "aadhar": "5529 6218 3477", "restorationDate": null, "remark": null, "age": 16, "regNo": 4640},
+  {"name": "Mercy Prakash singh", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "English", "institution": "Sunflower School", "blood": "A+", "dob": "2009-08-20", "doa": "14-04-2015", "dor": "20-01-2027", "caseNo": "166/A/2015", "aadhar": "9814 0682 3229", "restorationDate": null, "remark": null, "age": 16, "regNo": 4407},
+  {"name": "Khushi baria", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Orphan", "class": "Class 10", "medium": "Marathi", "institution": "Sunflower School", "blood": "AB+", "dob": "2009-07-01", "doa": "22-01-2020", "dor": "20-01-2027", "caseNo": "27/A/2020", "aadhar": "7265 6812 7839", "restorationDate": null, "remark": null, "age": 17, "regNo": 4584},
+  {"name": "Shivangi Ramesh Yadav", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "Hindi", "institution": "Sunflower School", "blood": "A+", "dob": "2011-07-03", "doa": "2024-12-07", "dor": "2026-09-07", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": "Shifted to House 9", "age": 15, "regNo": 4900},
+  {"name": "Priti Raut", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Orphan", "class": "Nursing", "medium": "Marathi", "institution": "St. Luke's Nursing College", "blood": "A+", "dob": "2009-08-22", "doa": "2013-03-06", "dor": "2027-06-06", "caseNo": "195/A/2018", "aadhar": "5766 0469 6724", "restorationDate": null, "remark": null, "age": 16, "regNo": 4330},
+  {"name": "Mamta Ramesh Sadaphule", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Orphan", "class": "Degree", "medium": "English", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2008-10-01", "doa": "17-04-2023", "dor": "2027-12-06", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 17, "regNo": 4851},
+  {"name": "Payal Suresh yadav", "gender": "Girl", "house": "House 8", "status": "Active but Restored", "parental": "Both Parents", "class": "Vocational Training", "medium": "Hindi", "institution": "LaljiMohtra Tech. Inst.", "blood": "B+", "dob": "2007-07-12", "doa": "16-06-2015", "dor": "26-06-2026", "caseNo": "332/A/2015", "aadhar": "5963 1857 7555", "restorationDate": "2025-12-30", "remark": "Handed over to the Mother", "age": 19, "regNo": 4417},
+  {"name": "Priyanka singh", "gender": "Girl", "house": "House 8", "status": "Restored", "parental": "Orphan", "class": "HSC Passed", "medium": "Marathi", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2007-07-01", "doa": "22-06-2018", "dor": "21-01-2026", "caseNo": "139/P/2018", "aadhar": "7042 3363 4708", "restorationDate": null, "remark": "18 years completed", "age": 19, "regNo": 4501},
+  {"name": "Rutuja Jaywant Tajve", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Both Parents", "class": "Class 12", "medium": "English", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2009-10-20", "doa": "2025-12-11", "dor": "2026-12-12", "caseNo": "445/A/2025", "aadhar": "853542976599", "restorationDate": null, "remark": null, "age": 16, "regNo": 4927},
+  {"name": "Ridhi Mahwani", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "Marathi", "institution": "St. Catherine's School", "blood": null, "dob": "2011-05-16", "doa": "20-06-2017", "dor": "28-06-2027", "caseNo": "318/A/2017", "aadhar": "381789848908", "restorationDate": null, "remark": null, "age": 14, "regNo": 4475},
+  {"name": "Poonam Dutta", "gender": "Girl", "house": "House 8", "status": "Restored", "parental": "Both Parents", "class": "HSC Passed", "medium": "Marathi", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2009-03-10", "doa": "25-06-2026", "dor": "2026-05-08", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": "Handed over to her biological Mother", "age": 17, "regNo": 4932},
+  {"name": "Saloni Rakesh Solam", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Both Parents", "class": "Class 2", "medium": "English", "institution": "Sunflower School", "blood": "B+", "dob": "2018-05-08", "doa": "29-05-2027", "dor": "18-12-2026", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 9, "regNo": 4936},
+  {"name": "Mansi Sugrim Ranjit", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Orphan", "class": "Class 6", "medium": null, "institution": "St. Catherine's School", "blood": null, "dob": "24-12-2015", "doa": "16-06-2026", "dor": "16-07-2027", "caseNo": "210/A/2026", "aadhar": null, "restorationDate": null, "remark": null, "age": 10, "regNo": 4938},
+  {"name": "Neha Balvir Choudhary", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Both Parents", "class": null, "medium": null, "institution": null, "blood": null, "dob": "2016-05-10", "doa": "2026-07-03", "dor": "23-07-2026", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 10, "regNo": 4940},
+  {"name": "Payal Bharat Umap", "gender": "Girl", "house": "House 8", "status": "Active", "parental": "Single Parent", "class": "Class 1", "medium": null, "institution": "Sunflower School", "blood": null, "dob": "2018-09-09", "doa": "2026-02-07", "dor": "2026-02-08", "caseNo": "60/A/2024", "aadhar": null, "restorationDate": null, "remark": null, "age": 8, "regNo": 4941},
+  {"name": "camera- 7", "gender": "Girl", "house": "House 8", "status": null, "parental": null, "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "Laxmi Ramesh Sadaphule", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Orphan", "class": "Class 11", "medium": "Marathi", "institution": "Holy Family Jr. College", "blood": null, "dob": "2010-11-12", "doa": "17-04-2023", "dor": "2027-07-28", "caseNo": "301/P/2023", "aadhar": "744387096090", "restorationDate": null, "remark": null, "age": 15, "regNo": 4852},
+  {"name": "Asmita Mahendra Dhody", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Orphan", "class": "Class 11", "medium": "Marathi", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2010-03-07", "doa": "2015-03-07", "dor": "2027-01-20", "caseNo": "397/A/2015", "aadhar": "3266 9577 2118", "restorationDate": null, "remark": null, "age": 16, "regNo": 4419},
+  {"name": "Almas Noor Moh Tai", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 11", "medium": "English", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2009-08-13", "doa": "27-01-2023", "dor": "2027-01-20", "caseNo": "38/A/23", "aadhar": "8883 0149 5020", "restorationDate": null, "remark": "Original Adhar card missing", "age": 16, "regNo": 4828},
+  {"name": "Piyali vishwas", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Orphan", "class": "Class 11", "medium": "Hindi", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2009-03-03", "doa": "22-06-2018", "dor": "2027-01-28", "caseNo": "214/A/2018", "aadhar": "9198 6548 3684", "restorationDate": null, "remark": null, "age": 17, "regNo": 4508},
+  {"name": "Anjali Sanjay baria", "gender": "Girl", "house": "House 9", "status": "Active but Restored", "parental": "Orphan", "class": "Class 11", "medium": "Marathi", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2007-08-30", "doa": "22-01-2020", "dor": "2027-01-20", "caseNo": "261/A/2020", "aadhar": "8149 0077 3886", "restorationDate": "2026-04-08", "remark": "Restored to the parents order by CWC 2", "age": 18, "regNo": 4585},
+  {"name": "Devki mukne", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Orphan", "class": "Class 12", "medium": "Marathi", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2009-01-05", "doa": "22-06-2018", "dor": "2027-01-20", "caseNo": "428/A/2017", "aadhar": "2699 2071 7860", "restorationDate": null, "remark": null, "age": 17, "regNo": 4507},
+  {"name": "Abisha kamti", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 12", "medium": "Hindi", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2009-02-15", "doa": "22-06-2018", "dor": "2026-12-23", "caseNo": "645/A/2017", "aadhar": "4778 8780 2629", "restorationDate": null, "remark": null, "age": 17, "regNo": 4502},
+  {"name": "Ankita Martin Gomes", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Both Parents", "class": "Class 12", "medium": "English", "institution": "S.M.T. Bafna Jr. College", "blood": null, "dob": "2009-04-04", "doa": "18-11-2022", "dor": "2027-06-06", "caseNo": "817/P/22", "aadhar": "9291 0779 4795", "restorationDate": null, "remark": null, "age": 17, "regNo": 4812},
+  {"name": "Payal Sunil singh", "gender": "Girl", "house": "House 9", "status": "Active but Restored", "parental": "Orphan", "class": "Nursing", "medium": "English", "institution": "Holy Spirit Nursing College", "blood": null, "dob": "2008-04-18", "doa": "26-08-2015", "dor": "2027-01-20", "caseNo": "536/A/2015", "aadhar": "8220 0265 6748", "restorationDate": null, "remark": null, "age": 18, "regNo": 4430},
+  {"name": "Neha Javed sheikh", "gender": "Girl", "house": "House 9", "status": "Active but Restored", "parental": "Both Parents", "class": "Nursing", "medium": "English", "institution": "Holy Spirit Nursing College", "blood": null, "dob": "2008-01-30", "doa": "2015-12-09", "dor": "2027-01-20", "caseNo": "560/A/2015", "aadhar": "5038 0200 7172", "restorationDate": "2026-04-08", "remark": "Restored to the parents order by CWC 2", "age": 18, "regNo": 4431},
+  {"name": "Akshata Deepak kadam", "gender": "Girl", "house": "House 9", "status": "Restored", "parental": "Single Parent", "class": "HSC Passed", "medium": "English", "institution": "Divine Child Jr. College", "blood": null, "dob": "2007-10-27", "doa": "2015-09-06", "dor": "2026-08-04", "caseNo": "212/A/2018", "aadhar": "9032 2745 2994", "restorationDate": "2026-04-08", "remark": "Restored to the parents order by CWC 2", "age": 18, "regNo": 4415},
+  {"name": "Nandini Brijesh Prasad", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 5", "medium": "Hindi", "institution": "Sunflower School", "blood": null, "dob": "2016-11-07", "doa": "16-06-2023", "dor": "2027-06-16", "caseNo": "575/P/23", "aadhar": "9799 1402 1280", "restorationDate": null, "remark": null, "age": 9, "regNo": 4871},
+  {"name": "Mansi Bharat Bhandari", "gender": "Girl", "house": "House 9", "status": "Active but Restored", "parental": "Single Parent", "class": "NIOS (12TH)", "medium": "English", "institution": "NIOS", "blood": "B+", "dob": "2007-09-22", "doa": "2022-05-09", "dor": "2026-05-30", "caseNo": "131/PO/2020", "aadhar": null, "restorationDate": null, "remark": "Self Release order by CWC 2", "age": 18, "regNo": 4783},
+  {"name": "Vaishnavi Vanve", "gender": "Girl", "house": "House 9", "status": "Restored", "parental": "Single Parent", "class": "Class 4", "medium": "English", "institution": "Sunflower School", "blood": null, "dob": "2015-11-14", "doa": "2022-09-05", "dor": "2026-06-06", "caseNo": "932/A/2022", "aadhar": "3944 9915 5429", "restorationDate": null, "remark": null, "age": 10, "regNo": 4712},
+  {"name": "Hazra Hamid Router", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 5", "medium": "Hindi", "institution": "Sunflower School", "blood": null, "dob": "2015-09-23", "doa": "2022-08-13", "dor": "2026-12-08", "caseNo": "A/22", "aadhar": "4212 9818 9053", "restorationDate": null, "remark": null, "age": 10, "regNo": 4761},
+  {"name": "Tina Jaynarayan Ridlan", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 6", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "O+", "dob": "2015-02-07", "doa": "16-10-2021", "dor": "2026-08-30", "caseNo": null, "aadhar": "4638 6997 2562", "restorationDate": null, "remark": null, "age": 11, "regNo": 4681},
+  {"name": "Radhika Sanjay Mourya", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 6", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "B+", "dob": "2014-10-24", "doa": "30-08-2021", "dor": "2026-08-25", "caseNo": "328/A/2021", "aadhar": "2803 87165763", "restorationDate": null, "remark": null, "age": 11, "regNo": 4678},
+  {"name": "Laxmi Aathavya Kale", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": "Hindi", "institution": "Sunflower School", "blood": null, "dob": "2011-12-07", "doa": "19-11-2020", "dor": "2026-12-09", "caseNo": "147/A/2020", "aadhar": "9655 2614 5638", "restorationDate": null, "remark": null, "age": 14, "regNo": 4607},
+  {"name": "Bhagyashri Bharat Bhandari", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 6", "medium": "Marathi", "institution": "St. Catherine's School", "blood": null, "dob": "2014-12-20", "doa": "2022-05-09", "dor": "2026-08-30", "caseNo": "130/P/2020", "aadhar": "5850 7680 3901", "restorationDate": null, "remark": null, "age": 11, "regNo": 4785},
+  {"name": "Shreya Virendra Surendran", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2013-09-14", "doa": "19-10-2021", "dor": "2027-01-20", "caseNo": "342/A/2021", "aadhar": "3908 9400 0000", "restorationDate": null, "remark": null, "age": 12, "regNo": 4682},
+  {"name": "Sanjana Santoosh Singh", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 9", "medium": "Marathi", "institution": "St. Catherine's School", "blood": null, "dob": "2012-09-15", "doa": "2022-05-09", "dor": "2026-08-30", "caseNo": "264/A/2013", "aadhar": "7642 8399 4192", "restorationDate": null, "remark": null, "age": 13, "regNo": 4781},
+  {"name": "Zoya Nadim Khan", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 6", "medium": "Hindi", "institution": "Sunflower School", "blood": "B+", "dob": "2013-05-18", "doa": "2022-05-09", "dor": "2026-08-30", "caseNo": null, "aadhar": "7027 8109 8238", "restorationDate": null, "remark": null, "age": 13, "regNo": 4786},
+  {"name": "Priyal Jadhav", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Orphan", "class": "Class 10", "medium": "Marathi", "institution": "Sunflower School", "blood": "B+", "dob": "2012-03-26", "doa": "21-08-2024", "dor": "2026-08-21", "caseNo": "287/T/2024", "aadhar": "4962 5592 9972", "restorationDate": null, "remark": "Need Correction in name in Adhar", "age": 14, "regNo": 4902},
+  {"name": "Nandini Deepak dalvi", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Orphan", "class": "Class 10", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "AB+", "dob": "2011-07-10", "doa": "29-01-2019", "dor": "2027-01-21", "caseNo": "686/A/2018", "aadhar": "3066 7668 0568", "restorationDate": null, "remark": null, "age": 15, "regNo": 4564},
+  {"name": "Shivani Ramesh Yadav", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "Hindi", "institution": "Sunflower School", "blood": "A+", "dob": "2009-03-06", "doa": "2024-12-07", "dor": "2026-09-07", "caseNo": "24/P/24", "aadhar": "8739 5843 3300", "restorationDate": null, "remark": null, "age": 17, "regNo": 4899},
+  {"name": "Khushi Suresh Balkot", "gender": "Girl", "house": "House 9", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "A+", "dob": "2011-12-21", "doa": "2019-09-30", "dor": "2027-01-25", "caseNo": "28/A/2019", "aadhar": "3304 6126 8918", "restorationDate": null, "remark": null, "age": 14, "regNo": 4579},
+  {"name": "Kadambari Jagtap", "gender": "Girl", "house": "House 9", "status": "Restored", "parental": "Both Parents", "class": "Class 10", "medium": "English", "institution": "Sunflower School", "blood": null, "dob": "2011-05-22", "doa": "2022-03-11", "dor": "19-6-2026", "caseNo": null, "aadhar": "9397 6337 3251", "restorationDate": null, "remark": "Restoration & Handover to Mother order by CWC-2", "age": 15, "regNo": 4697},
+  {"name": "toilet -", "gender": "Girl", "house": "House 9", "status": null, "parental": null, "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "camera -", "gender": "Girl", "house": "House 9", "status": null, "parental": null, "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "MDDr.", "gender": "Girl", "house": "House 9", "status": null, "parental": null, "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "Saloni Radhyeshyam Gupta", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Both Parents", "class": "Class 6", "medium": "Hindi", "institution": "Vasudev School", "blood": null, "dob": "2015-07-15", "doa": "2024-04-20", "dor": "2027-04-30", "caseNo": null, "aadhar": "9316 4994 9451", "restorationDate": null, "remark": null, "age": 11, "regNo": 16},
+  {"name": "Jivika Ajay Singh", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "English", "institution": "Canossa School", "blood": null, "dob": "2013-02-13", "doa": "2024-10-06", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 13, "regNo": 26},
+  {"name": "Varsha Waghmare", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Both Parents", "class": "NIOS (OBE)", "medium": "Marathi", "institution": "NIOS", "blood": null, "dob": "2011-09-24", "doa": "2024-04-05", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 14, "regNo": 23},
+  {"name": "Riya Ajay Singh", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "English", "institution": "Canossa School", "blood": null, "dob": "2011-12-08", "doa": "2024-10-06", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 14, "regNo": 27},
+  {"name": "Vaishali Waghmare", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Both Parents", "class": "Class 9", "medium": "Marathi", "institution": "Holy Family School", "blood": null, "dob": "2011-08-06", "doa": "2024-04-05", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 14, "regNo": 24},
+  {"name": "Janvi Mhato", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Both Parents", "class": "Class 3", "medium": "English", "institution": "Canossa School", "blood": null, "dob": "2017-10-17", "doa": "2024-04-06", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 8, "regNo": 25},
+  {"name": "Pahuni Krushna Jagtap", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Single Parent", "class": "NIOS (OBE)", "medium": "Marathi", "institution": "NIOS", "blood": null, "dob": "2014-07-06", "doa": "2024-11-06", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 12, "regNo": 30},
+  {"name": "Yahovi Pradip Shelar", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Both Parents", "class": "Class 10", "medium": "Marathi", "institution": "Holy Family School", "blood": null, "dob": "2010-12-14", "doa": "2025-01-06", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 15, "regNo": null},
+  {"name": "Karishma Ramashankar Verma", "gender": "Girl", "house": "House 10", "status": "Active but Restored", "parental": "Both Parents", "class": "Degree", "medium": "English", "institution": "Tech. Mahindra Inst.", "blood": null, "dob": "2006-11-10", "doa": "2021-01-21", "dor": null, "caseNo": "017/A/2021", "aadhar": "6230 5829 6424", "restorationDate": "2025-08-05", "remark": "Hand over to Mother", "age": 19, "regNo": 4622},
+  {"name": "Rajeshree dhumal", "gender": "Girl", "house": "House 10", "status": "Restored", "parental": "Orphan", "class": "Working", "medium": null, "institution": "NA", "blood": "B+", "dob": "2003-08-03", "doa": null, "dor": null, "caseNo": "199/A/2018", "aadhar": "5755 1859 0146", "restorationDate": "2022-02-21", "remark": "Self Release", "age": 22, "regNo": 4167},
+  {"name": "Gayatri Balu Waghmare", "gender": "Girl", "house": "House 10", "status": "Active", "parental": "Both Parents", "class": null, "medium": null, "institution": null, "blood": null, "dob": "2015-02-04", "doa": "2026-05-04", "dor": "2027-04-30", "caseNo": null, "aadhar": "501679356384", "restorationDate": null, "remark": null, "age": 12, "regNo": 41},
+  {"name": "Juma Pahal Rawat", "gender": "Girl", "house": "House 15", "status": "Not Active", "parental": "Both Parents", "class": "SSC Passed", "medium": "English", "institution": "Restaurant", "blood": null, "dob": "2006-07-19", "doa": "2023-01-01", "dor": "2026-04-30", "caseNo": "280/P/22", "aadhar": "5784 5607 0794", "restorationDate": "19-07-2024", "remark": "Handover to Mother", "age": 20, "regNo": 4821},
+  {"name": "Rajeshwari chattiyar", "gender": "Girl", "house": "House 15", "status": "Active but Restored", "parental": "Single Parent", "class": "Working & Studying", "medium": "English", "institution": "Hotel", "blood": "A+", "dob": "2006-11-17", "doa": "2018-06-28", "dor": "2026-04-30", "caseNo": "402/A/2018", "aadhar": "3152 1788 5840", "restorationDate": "28-06-2025", "remark": "Hand over to Mother", "age": 19, "regNo": 4514},
+  {"name": "Payal Waghu Ingle", "gender": "Girl", "house": "House 15", "status": "Active but Restored", "parental": "Both Parents", "class": "Working & Studying", "medium": "English", "institution": "Hotel", "blood": "O+", "dob": "2007-05-07", "doa": "2018-06-07", "dor": "2026-04-30", "caseNo": "565/A/2017", "aadhar": "5235 9017 3135", "restorationDate": "19-03-2025", "remark": "Hand over to Mother", "age": 19, "regNo": 4521},
+  {"name": "Rakhi yadav", "gender": "Girl", "house": "House 15", "status": "Not Active", "parental": "Both Parents", "class": "Working & Studying", "medium": "English", "institution": "Hotel", "blood": "B+", "dob": "2005-08-19", "doa": "2015-06-16", "dor": "2026-04-30", "caseNo": "332/A/2015", "aadhar": "4353 3894 7734", "restorationDate": "22-07-2024", "remark": "Hand Over to Brother and Mother", "age": 20, "regNo": 4485},
+  {"name": "Sonali Dalavi", "gender": "Girl", "house": "House 15", "status": "Active", "parental": "Both Parents", "class": "BSW", "medium": "English", "institution": "Nirmala Niketan CSW", "blood": null, "dob": null, "doa": "2024-01-07", "dor": "2026-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "Priyanka Balsare", "gender": "Girl", "house": "House 15", "status": "Active", "parental": "Both Parents", "class": "BSW", "medium": "English", "institution": "Nirmala Niketan CSW", "blood": null, "dob": null, "doa": "2025-01-06", "dor": "2026-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "Shubhangi Kevat", "gender": "Girl", "house": "House 15", "status": "Not Active", "parental": "Single Parent", "class": "Working & Studying", "medium": "English", "institution": "Hotel", "blood": null, "dob": "2007-11-01", "doa": null, "dor": "2026-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 18, "regNo": null},
+  {"name": "Sadhana Waghoeskar", "gender": "Girl", "house": "House 15", "status": "Not Active", "parental": "Orphan", "class": "Working", "medium": "English", "institution": "Hospital", "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 126, "regNo": null},
+  {"name": "Payal Sunil singh", "gender": "Girl", "house": "House 15", "status": "Active but Restored", "parental": "Orphan", "class": "Nursing", "medium": "English", "institution": "Holy Spirit Nursing College", "blood": null, "dob": "2008-04-18", "doa": "2015-08-26", "dor": "2027-01-20", "caseNo": "536/A/2015", "aadhar": null, "restorationDate": null, "remark": null, "age": 18, "regNo": 4430},
+  {"name": "Akshada Jadhav", "gender": "Girl", "house": "House 15", "status": "Active", "parental": "Both Parents", "class": "NA", "medium": null, "institution": "Hotel", "blood": "AB+", "dob": "2004-08-22", "doa": "2026-06-28", "dor": "2027-04-30", "caseNo": null, "aadhar": "535109971766", "restorationDate": null, "remark": "She is from Latur and has come through the reference of Sr. Romalin", "age": 22, "regNo": null},
+  {"name": "Prashansha Pawra", "gender": "Girl", "house": "House 15", "status": "Active", "parental": "Both Parents", "class": "Degree", "medium": "English", "institution": "Hotel", "blood": "B+", "dob": "2006-07-13", "doa": "2026-06-28", "dor": "2027-04-30", "caseNo": null, "aadhar": "853463454330", "restorationDate": null, "remark": "She is from Shirpur and has come through the reference of Sr. Romalin", "age": null, "regNo": null},
+  {"name": "Sushmita Lingappa Dhangar", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Single Parent", "class": "Sr. Kg.", "medium": null, "institution": "English", "blood": null, "dob": "2020-05-16", "doa": "2024-05-29", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 6, "regNo": 22},
+  {"name": "Gauravi  Bhoir", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Sr. Kg.", "medium": null, "institution": "English", "blood": null, "dob": null, "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 126, "regNo": null},
+  {"name": "Repllish Sabichan Marak", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Sr. Kg.", "medium": null, "institution": "English", "blood": null, "dob": "2019-08-10", "doa": "2025-06-06", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 6, "regNo": 35},
+  {"name": "Purvi Roshan Sunita Kasdekar", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Sr. Kg.", "medium": null, "institution": "English", "blood": null, "dob": "2018-11-01", "doa": "2025-07-25", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 7, "regNo": null},
+  {"name": "Alisha Anil Dhande", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Class 4", "medium": null, "institution": "Marathi", "blood": null, "dob": "2017-08-20", "doa": "2025-07-25", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 8, "regNo": null},
+  {"name": "Shradha Sabulal Kasdekar", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Class 5", "medium": null, "institution": "Marathi", "blood": null, "dob": "2016-09-13", "doa": "2025-07-25", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 9, "regNo": null},
+  {"name": "Urmila Jayesh Bhonar", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Single Parent", "class": "Class 4", "medium": null, "institution": "Marathi", "blood": "O+", "dob": "2017-02-23", "doa": "2023-06-16", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": "2025-06-16", "remark": "Hand Over to Mother", "age": 9, "regNo": 4875},
+  {"name": "Aditi Jepi Bhandari", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Class 4", "medium": null, "institution": "Marathi", "blood": null, "dob": "2015-11-18", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 10, "regNo": 17},
+  {"name": "Sharmila Jayesh Bhonar", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": null, "institution": "Marathi", "blood": "A+", "dob": "2014-05-15", "doa": "2023-06-16", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": "2025-06-16", "remark": "Hand Over to Mother", "age": 12, "regNo": 4874},
+  {"name": "Anna Minal Agaskar", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": null, "institution": "English", "blood": null, "dob": "2010-07-10", "doa": "2025-06-06", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 16, "regNo": null},
+  {"name": "Rani Waghu ingle", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Class 12", "medium": null, "institution": "English", "blood": "O+", "dob": "2009-06-12", "doa": "2018-06-07", "dor": "2027-04-30", "caseNo": "564/A/2017", "aadhar": null, "restorationDate": null, "remark": null, "age": 17, "regNo": 4522},
+  {"name": "Tanvi Hari Bhilawekar", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Orphan", "class": "Nursary", "medium": null, "institution": "English", "blood": null, "dob": "2019-06-26", "doa": "2026-06-08", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 7, "regNo": 47},
+  {"name": "Gauri Nagesh Rathod", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Class 6", "medium": null, "institution": "Marathi", "blood": null, "dob": "2015-01-01", "doa": "2026-06-18", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 11, "regNo": 48},
+  {"name": "Shubhangi Nagesh Rathod", "gender": "Girl", "house": "House 16", "status": "Active", "parental": "Both Parents", "class": "Class 5", "medium": null, "institution": "Marathi", "blood": null, "dob": "2016-10-26", "doa": "2026-06-18", "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 9, "regNo": 49},
+  {"name": "Dhanashree Kishor Dhumal", "gender": "Girl", "house": "Studies Outside", "status": "Active but Restored", "parental": "Orphan", "class": "Nursing", "medium": null, "institution": "St. Luke's Nursing College", "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "Muskan Shaikh", "gender": "Girl", "house": "Studies Outside", "status": "Active but Restored", "parental": "Single Parent", "class": "Nursing", "medium": null, "institution": "St. Luke's Nursing College", "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "Manisha Vishwakarma", "gender": "Girl", "house": "Studies Outside", "status": "Active but Restored", "parental": "Single Parent", "class": "Nursing", "medium": null, "institution": "Dayanand Nursing College", "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "Nagesh Shrawan Chawan", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Both Parents", "class": "Class 9", "medium": "Hindi", "institution": "Ghanshyamdas Poddar", "blood": "B+", "dob": "2011-08-03", "doa": "2018-10-16", "dor": "2026-07-09", "caseNo": "869/A/2018", "aadhar": "813204491554", "restorationDate": null, "remark": null, "age": 14, "regNo": 4547},
+  {"name": "Avnish Karunachand Tiwari", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "English", "institution": "BMC Gundawali School", "blood": "O+", "dob": "2011-04-10", "doa": "2022-07-22", "dor": "2026-07-23", "caseNo": "56/A/22", "aadhar": "508270565202", "restorationDate": null, "remark": null, "age": 15, "regNo": 4748},
+  {"name": "Nitesh Karunachand Tiwari", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "NIOS (OBE)", "medium": "English", "institution": "BMC Gundawali School", "blood": "O+", "dob": "2012-10-09", "doa": "2022-07-22", "dor": "2026-07-23", "caseNo": "57/A/22", "aadhar": "385917877427", "restorationDate": null, "remark": null, "age": 13, "regNo": 4749},
+  {"name": "Ahed Nadim Khan", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "English", "institution": "Holy Family School", "blood": "B+", "dob": "2011-05-18", "doa": "2022-09-05", "dor": "2026-09-04", "caseNo": "P/ 2019", "aadhar": "676903063835", "restorationDate": null, "remark": null, "age": 15, "regNo": 4768},
+  {"name": "Hemant Milind Narkar", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "Marathi", "institution": "Holy Family School", "blood": "B+", "dob": "2011-07-30", "doa": "2023-02-03", "dor": "2027-02-21", "caseNo": "230/P/2023", "aadhar": "348297849515", "restorationDate": null, "remark": null, "age": 14, "regNo": 4831},
+  {"name": "Aryan Vikram Morothiya", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Orphan", "class": "Class 12", "medium": "English", "institution": "Sathay Jr. College", "blood": "O+", "dob": "2010-02-21", "doa": "2023-06-07", "dor": "2026-06-26", "caseNo": "650/A/2018", "aadhar": "579349428184", "restorationDate": null, "remark": null, "age": 16, "regNo": 4868},
+  {"name": "Ansh Brijesh kumar Prasad", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 6", "medium": "Hindi", "institution": "Vasudev School", "blood": "B+", "dob": "2013-11-10", "doa": "2023-06-13", "dor": "2026-06-26", "caseNo": "574/P/2023", "aadhar": "718161784496", "restorationDate": null, "remark": null, "age": 12, "regNo": 4870},
+  {"name": "Vrushabh Sunil Rinayate", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Both Parents", "class": "Class 11", "medium": "English", "institution": "Holy Family School", "blood": "O+", "dob": "2010-04-10", "doa": "2023-06-22", "dor": "2026-07-09", "caseNo": "73/T/2022", "aadhar": "338636746738", "restorationDate": null, "remark": "CAMERA -", "age": 16, "regNo": 4876},
+  {"name": "Daksh Sagar Krishna Jadhav", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 6", "medium": "Semi-Marathi", "institution": "Vasudev School", "blood": "A+", "dob": "2012-10-11", "doa": "2018-09-25", "dor": "2026-07-16", "caseNo": "903/A/2018", "aadhar": "972609996163", "restorationDate": null, "remark": "BATHROOM-", "age": 13, "regNo": 4546},
+  {"name": "Tanmay Santosh Halikede", "gender": "Boy", "house": "House no 03", "status": "Restored", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "Holy Family School", "blood": "O+", "dob": "2013-08-17", "doa": "2021-03-13", "dor": "2027-03-19", "caseNo": "40/A/2021", "aadhar": "852432724548", "restorationDate": null, "remark": null, "age": 12, "regNo": 4633},
+  {"name": "Shiv Pannelal Nishad", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "Semi-Hindi", "institution": "Vasudev School", "blood": "AB+", "dob": "2010-07-27", "doa": "2025-03-13", "dor": "2027-03-07", "caseNo": "219/A/2024", "aadhar": "470885228666", "restorationDate": null, "remark": null, "age": 15, "regNo": 4912},
+  {"name": "Saurabh Pannelal Nishad", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "English", "institution": "BMC Gundawali School", "blood": "O+", "dob": "2012-08-18", "doa": "2025-03-13", "dor": "2027-03-07", "caseNo": "218/A/2024", "aadhar": "426032841436", "restorationDate": null, "remark": null, "age": 13, "regNo": 4913},
+  {"name": "Sachin Dhansingh Sonar", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 11", "medium": "Hindi", "institution": "Vasudev School", "blood": "O+", "dob": "2011-04-10", "doa": "2015-07-11", "dor": "2026-07-03", "caseNo": "450/A/2015", "aadhar": "726065322658", "restorationDate": null, "remark": "Trasfed from Ho 05 on dated 22.05.25", "age": 15, "regNo": 4384},
+  {"name": "Prince Sunil Kumar", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Both Parents", "class": "Class 11", "medium": "Hindi", "institution": "Vasudev School", "blood": "O+", "dob": "2010-09-17", "doa": "2018-12-15", "dor": "2026-07-03", "caseNo": "950/A/2018", "aadhar": "785972561025", "restorationDate": null, "remark": "Trasfed from Ho 05 on dated 22.05.25", "age": 15, "regNo": 4554},
+  {"name": "Ronny Joseph Dsouza", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Both Parents", "class": "Class 10", "medium": "English", "institution": "BMC Gundawali School", "blood": "O+", "dob": "2011-11-14", "doa": "2023-03-30", "dor": "2027-04-12", "caseNo": "276/A/2023", "aadhar": "694795317110", "restorationDate": null, "remark": "Trasfed from Ho 05 on dated 22.05.25", "age": 14, "regNo": 4848},
+  {"name": "Malang Afjal Shaikh", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 6", "medium": "Hindi", "institution": "Vasudev School", "blood": "O+", "dob": "2016-08-15", "doa": "2024-04-20", "dor": "2027-04-30", "caseNo": "224/P/20", "aadhar": "944263478676", "restorationDate": null, "remark": "Trasfed from Ho 05 on dated 22.05.25", "age": 9, "regNo": 4892},
+  {"name": "Mastan Afjal Shaikh", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 3", "medium": "English", "institution": "BMC Gundawali School", "blood": "O+", "dob": "2018-04-15", "doa": "2024-04-20", "dor": "2027-04-30", "caseNo": "225/P/20", "aadhar": "790005362477", "restorationDate": null, "remark": "Trasfed from Ho 05 on dated 22.05.25", "age": 8, "regNo": 4893},
+  {"name": "Ganesha Preetam Patel", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Orphan", "class": "Class 7", "medium": "English", "institution": "Holy Family School", "blood": "O+", "dob": "2013-09-17", "doa": "2021-05-20", "dor": "2026-07-16", "caseNo": "/ A/2021", "aadhar": "473788786015", "restorationDate": null, "remark": "Trasfed from Ho 11 on dated 22.05.25", "age": 12, "regNo": 4649},
+  {"name": "Sahil Ishwar Kale", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 12", "medium": "English", "institution": "Sathay Jr. College", "blood": "A+", "dob": "2010-06-28", "doa": "2018-12-07", "dor": "2026-06-30", "caseNo": "361/P/2018", "aadhar": "896923889570", "restorationDate": null, "remark": null, "age": 16, "regNo": 4549},
+  {"name": "Dhairay Paras Madhwani", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 11", "medium": "Hindi", "institution": "BMC Chakala School", "blood": "B+", "dob": "2010-01-15", "doa": "2017-06-20", "dor": "2027-01-22", "caseNo": "318/A/2017", "aadhar": "985538834358", "restorationDate": null, "remark": null, "age": 16, "regNo": 4474},
+  {"name": "Vikash Shankar Bombali", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Hindi", "institution": "BMC Gundawali School", "blood": "B+", "dob": "2013-11-16", "doa": "2022-09-05", "dor": "2026-09-02", "caseNo": "72/PS/19", "aadhar": "240994951976", "restorationDate": null, "remark": null, "age": 12, "regNo": 4771},
+  {"name": "Vihan Shetu chetri", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Orphan", "class": "Class 8", "medium": "English", "institution": "BMC Gundawali School", "blood": "A+", "dob": "2013-03-30", "doa": "2025-07-11", "dor": "2026-07-11", "caseNo": "271/A/19", "aadhar": null, "restorationDate": null, "remark": null, "age": 13, "regNo": 4920},
+  {"name": "Yohan Tushar Ingale", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Both Parents", "class": "Class 2", "medium": "English", "institution": "BMC Gundawali School", "blood": "A+", "dob": "2019-12-14", "doa": "2025-07-11", "dor": "2026-07-11", "caseNo": "258/A/25", "aadhar": null, "restorationDate": null, "remark": null, "age": 6, "regNo": 4914},
+  {"name": "Shivshant Sushil Gupta", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Single Parent", "class": "Class 11", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2009-06-05", "doa": "2024-09-24", "dor": "2026-09-20", "caseNo": "349/A/24", "aadhar": "965127559194", "restorationDate": null, "remark": null, "age": 17, "regNo": 4904},
+  {"name": "Lalappa Chandrappa Ganpur", "gender": "Boy", "house": "House no 03", "status": "Non CWC", "parental": "Orphan", "class": "Class 10", "medium": "Hindi", "institution": "Vasudev School", "blood": null, "dob": "2008-09-25", "doa": null, "dor": null, "caseNo": null, "aadhar": "667882288885", "restorationDate": null, "remark": null, "age": 17, "regNo": null},
+  {"name": "Mangesh Mahendra Dhody", "gender": "Boy", "house": "House no 03", "status": "Not Active", "parental": "Orphan", "class": "Working & Studying", "medium": "English", "institution": "Mumbai University", "blood": "B+", "dob": "2006-06-12", "doa": "2015-07-04", "dor": null, "caseNo": "395/A/2015", "aadhar": "857993952278", "restorationDate": "2024-07-03", "remark": "Self Released", "age": 20, "regNo": 4379},
+  {"name": "Nitin Kasim Chaudhary", "gender": "Boy", "house": "House no 03", "status": "Active but Restored", "parental": "Orphan", "class": "Working", "medium": null, "institution": "NA", "blood": "AB+", "dob": "2004-02-11", "doa": "2010-06-01", "dor": null, "caseNo": "182/A/2013", "aadhar": "415023417229", "restorationDate": "2022-02-14", "remark": "Self Released", "age": 22, "regNo": "4098-A"},
+  {"name": "Prathamesh Mahendra Dhody", "gender": "Boy", "house": "House no 03", "status": "Not Active", "parental": "Orphan", "class": "Working", "medium": null, "institution": "NA", "blood": "B+", "dob": "2005-08-27", "doa": "2015-07-04", "dor": null, "caseNo": "396/A/2015", "aadhar": "813241812483", "restorationDate": "2023-09-01", "remark": "Self Released", "age": 20, "regNo": 4378},
+  {"name": "Ganesh Anil Jaiswal", "gender": "Boy", "house": "House no 03", "status": "Not Active", "parental": "Single Parent", "class": "Vocational Training", "medium": "English", "institution": "LaljiMohtra Tech. Inst.", "blood": "O+", "dob": "2006-10-21", "doa": "2018-07-19", "dor": null, "caseNo": "640/P/2017", "aadhar": "391020304022", "restorationDate": "2025-01-31", "remark": "Self Released", "age": 19, "regNo": 4536},
+  {"name": "Nikhil Nauvaj Shing", "gender": "Boy", "house": "House no 03", "status": "Restored", "parental": "Both Parents", "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": "2026-03-07", "dor": null, "caseNo": null, "aadhar": null, "restorationDate": "2026-03-09", "remark": "HOto M 09.03.26", "age": 9, "regNo": 4928},
+  {"name": "Mukesh Surendra Tiwari", "gender": "Boy", "house": "House no 03", "status": "Restored", "parental": "Both Parents", "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": "2026-03-07", "dor": null, "caseNo": null, "aadhar": null, "restorationDate": "2026-03-11", "remark": "Ho to M 11.03.26", "age": 10, "regNo": 4930},
+  {"name": "Salman@ Kunal Chattu Harijan", "gender": "Boy", "house": "House no 03", "status": "Restored", "parental": "Single Parent", "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": "2026-03-07", "dor": null, "caseNo": null, "aadhar": null, "restorationDate": "2026-04-08", "remark": "HO to M 08.04.26", "age": 10, "regNo": 4929},
+  {"name": "Ritik Karan Dhokare", "gender": "Boy", "house": "House no 03", "status": "Restored", "parental": "Both Parents", "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": "2026-04-18", "dor": "2026-06-20", "caseNo": null, "aadhar": null, "restorationDate": "2026-04-27", "remark": "HO to M on 27/04/26", "age": 8, "regNo": 4931},
+  {"name": "Veer Kishan Nikhare", "gender": "Boy", "house": "House no 03", "status": "Restored", "parental": "Both Parents", "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": "2026-05-03", "dor": null, "caseNo": null, "aadhar": null, "restorationDate": "2026-05-04", "remark": "Handover To Bandra Rly Police", "age": 10, "regNo": 4933},
+  {"name": "Mahesh Sugrim Ramjit", "gender": "Boy", "house": "House no 03", "status": "Active", "parental": "Orphan", "class": "Class 9", "medium": "Marathi", "institution": "Holy Family School", "blood": null, "dob": "2012-09-15", "doa": "2026-06-16", "dor": "2026-07-16", "caseNo": null, "aadhar": "686991596315", "restorationDate": null, "remark": null, "age": 13, "regNo": 4937},
+  {"name": "Anshuman Sangita Bhatkar", "gender": "Boy", "house": "House No 04", "status": "Not Active", "parental": "Single Parent", "class": "Class 11", "medium": "English", "institution": "Holy Family Jr. College", "blood": null, "dob": "2009-01-05", "doa": "2023-11-22", "dor": null, "caseNo": null, "aadhar": "953137635386", "restorationDate": null, "remark": null, "age": 17, "regNo": 8},
+  {"name": "Ashish  Radeyshyam Gupta", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 5", "medium": "Semi-Hindi", "institution": "Swami Vivekananda School", "blood": "O+", "dob": "2012-12-25", "doa": "2024-04-20", "dor": null, "caseNo": null, "aadhar": "843969714455", "restorationDate": null, "remark": null, "age": 13, "regNo": 9},
+  {"name": "Satyam Radeyshyam Gupta", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 3", "medium": "Semi-Hindi", "institution": "Swami Vivekananda School", "blood": "O+", "dob": "2015-06-02", "doa": "2024-04-20", "dor": null, "caseNo": null, "aadhar": "263588137018", "restorationDate": null, "remark": null, "age": 11, "regNo": 10},
+  {"name": "om Vasant  Jagdale", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 4", "medium": "Semi-Hindi", "institution": "Swami Vivekananda School", "blood": "B+", "dob": "2015-02-23", "doa": "2024-04-25", "dor": null, "caseNo": null, "aadhar": "943171722607", "restorationDate": null, "remark": null, "age": 11, "regNo": 11},
+  {"name": "Ishant Ishawar Shelekar", "gender": "Boy", "house": "House No 04", "status": "Not Active", "parental": "Both Parents", "class": "Class 4", "medium": "Semi-Hindi", "institution": "Swami Vivekananda School", "blood": "B+", "dob": "2014-06-09", "doa": "2024-06-04", "dor": null, "caseNo": null, "aadhar": "939521061618", "restorationDate": "08-112025", "remark": "HO to Father on 08/11/25", "age": 12, "regNo": 14},
+  {"name": "Aaditya Jepi Bhandari", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Single Parent", "class": "Class 2", "medium": "English", "institution": "BMC Shankarwadi School", "blood": "B+", "dob": "2018-01-13", "doa": "2024-06-04", "dor": null, "caseNo": null, "aadhar": "868574806564", "restorationDate": null, "remark": null, "age": 8, "regNo": 15},
+  {"name": "Sharad Sabulal Kasdekar", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Sr. Kg.", "medium": "English", "institution": "BMC Shankarwadi School", "blood": "A+", "dob": "2019-07-13", "doa": "2025-06-27", "dor": null, "caseNo": null, "aadhar": "794253637216", "restorationDate": null, "remark": null, "age": 7, "regNo": 34},
+  {"name": "Rishap Sunil Dhande", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Sr. Kg.", "medium": "English", "institution": "BMC Shankarwadi School", "blood": "A+", "dob": "2019-08-26", "doa": "2025-06-27", "dor": null, "caseNo": null, "aadhar": "522024828881", "restorationDate": null, "remark": null, "age": 6, "regNo": 35},
+  {"name": "Aryan Sunil Dhande", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 3", "medium": "Hindi", "institution": "Swami Vivekananda School", "blood": "A+", "dob": "2015-08-30", "doa": "2025-06-27", "dor": null, "caseNo": null, "aadhar": "388709560970", "restorationDate": null, "remark": null, "age": 10, "regNo": 36},
+  {"name": "Kunala Kailas Jamunkar", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 1", "medium": "Hindi", "institution": "Swami Vivekananda School", "blood": "O+", "dob": "2019-01-19", "doa": "2025-06-27", "dor": null, "caseNo": null, "aadhar": "259055961277", "restorationDate": null, "remark": null, "age": 7, "regNo": 37},
+  {"name": "Sakib Angad Yadav", "gender": "Boy", "house": "House No 04", "status": "Active but Restored", "parental": "Orphan", "class": "NIOS (10TH)", "medium": "Hindi", "institution": "NIOS", "blood": "O+", "dob": "13-01-2006", "doa": "2013-03-07", "dor": null, "caseNo": "11/P/2016", "aadhar": "241692234553", "restorationDate": "2024-01-24", "remark": "release on dated 24/01/24", "age": 20, "regNo": 4481},
+  {"name": "Mayur Balu Waghamare", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Single Parent", "class": "Class 9", "medium": "Marathi", "institution": null, "blood": null, "dob": "2012-08-30", "doa": "2026-05-06", "dor": null, "caseNo": null, "aadhar": "903538968755", "restorationDate": null, "remark": null, "age": 14, "regNo": 39},
+  {"name": "Joshil Basco Waghamare", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Single Parent", "class": "Class 9", "medium": "Marathi", "institution": null, "blood": null, "dob": "2012-09-07", "doa": "2026-05-06", "dor": null, "caseNo": null, "aadhar": "452659936479", "restorationDate": null, "remark": null, "age": 14, "regNo": 40},
+  {"name": "Prabhas Roshan Kasdekar", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 1", "medium": "Hindi", "institution": null, "blood": null, "dob": "2021-05-03", "doa": "2026-08-06", "dor": null, "caseNo": null, "aadhar": "853774977891", "restorationDate": null, "remark": null, "age": 5, "regNo": 42},
+  {"name": "Aarya  Anil Dhande", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 1", "medium": "Hindi", "institution": null, "blood": null, "dob": "2020-05-28", "doa": "2026-08-06", "dor": null, "caseNo": null, "aadhar": "573350426070", "restorationDate": null, "remark": null, "age": 6, "regNo": 43},
+  {"name": "Purab Ishwar Shelekar", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 5", "medium": "Hindi", "institution": null, "blood": null, "dob": "2017-03-13", "doa": "2026-08-06", "dor": null, "caseNo": null, "aadhar": "505051203597", "restorationDate": null, "remark": null, "age": 9, "regNo": 44},
+  {"name": "Ishant Ishawar Shelekar", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "Hindi", "institution": null, "blood": null, "dob": "2014-06-26", "doa": "2026-08-06", "dor": null, "caseNo": null, "aadhar": "814972447730", "restorationDate": null, "remark": null, "age": 12, "regNo": 45},
+  {"name": "Yash Hari Bhilawekar", "gender": "Boy", "house": "House No 04", "status": "Active", "parental": "Both Parents", "class": "Class 9", "medium": "Hindi", "institution": null, "blood": null, "dob": "2013-07-17", "doa": "2026-08-06", "dor": null, "caseNo": null, "aadhar": "699865866304", "restorationDate": null, "remark": null, "age": 13, "regNo": 46},
+  {"name": "Laksh Anil Kurade", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": "Hindi", "institution": "Swami Vivekananda School", "blood": "B+", "dob": "2012-12-23", "doa": "2018-06-25", "dor": null, "caseNo": "591/A/2018", "aadhar": "801661357971", "restorationDate": "23-04-2025", "remark": "Hand over to Mother", "age": 13, "regNo": 4512},
+  {"name": "Chitraksh Anil Kurade", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "Hindi", "institution": "Swami Vivekananda School", "blood": "B+", "dob": "2010-10-23", "doa": "2018-06-25", "dor": null, "caseNo": "589/A/2018", "aadhar": "841459905512", "restorationDate": "23-04-2025", "remark": null, "age": 15, "regNo": 4510},
+  {"name": "Chitresh Anil Kurade", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "Hindi", "institution": "Swami Vivekananda School", "blood": "B+", "dob": "2010-10-23", "doa": "2018-06-25", "dor": null, "caseNo": "590/A/2018", "aadhar": "372712147619", "restorationDate": "23-04-2025", "remark": null, "age": 15, "regNo": 4511},
+  {"name": "Yash Pritam Patel", "gender": "Boy", "house": "House no 06", "status": "Not Active", "parental": "Orphan", "class": "Working", "medium": null, "institution": null, "blood": "B+", "dob": "2005-03-30", "doa": "2020-05-20", "dor": null, "caseNo": null, "aadhar": "919583543476", "restorationDate": null, "remark": null, "age": 21, "regNo": 4650},
+  {"name": "Sujeet Santosh Yadav", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Both Parents", "class": "Class 4", "medium": "Hindi", "institution": "Swami Vivekananda School", "blood": "O+", "dob": "2014-05-23", "doa": "2023-05-23", "dor": null, "caseNo": null, "aadhar": "433697200728", "restorationDate": null, "remark": null, "age": 12, "regNo": 12},
+  {"name": "Sushant Lingappa Dhangar", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Both Parents", "class": "Sr. Kg.", "medium": "English", "institution": "BMC Shankarwadi School", "blood": "O+", "dob": "2020-05-16", "doa": "2024-05-29", "dor": null, "caseNo": null, "aadhar": "628202438006", "restorationDate": null, "remark": null, "age": 6, "regNo": 13},
+  {"name": "Soyam Anil Bhoir", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Both Parents", "class": "Class 5", "medium": "Marathi", "institution": "Balgovind School", "blood": "O+", "dob": "2013-10-25", "doa": "2024-09-12", "dor": null, "caseNo": null, "aadhar": "266625707808", "restorationDate": null, "remark": null, "age": 12, "regNo": 31},
+  {"name": "Aryan Raju Gupta", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "English", "institution": "Holy Family School", "blood": "B+", "dob": "2010-12-24", "doa": "2022-02-02", "dor": null, "caseNo": null, "aadhar": "996511665480", "restorationDate": "2025-05-03", "remark": "Hand over to Mother", "age": 15, "regNo": 4690},
+  {"name": "Prem Pradip Shelar", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Both Parents", "class": "Class 5", "medium": "Marathi", "institution": "Balgovind School", "blood": "B+", "dob": "2013-11-24", "doa": "2025-04-30", "dor": null, "caseNo": null, "aadhar": "920266759466", "restorationDate": null, "remark": null, "age": 12, "regNo": 32},
+  {"name": "Manoj Sugriv Waghamare", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "Balgovind School", "blood": "A-", "dob": "2012-08-15", "doa": "2025-06-01", "dor": null, "caseNo": null, "aadhar": "565684509900", "restorationDate": null, "remark": null, "age": 13, "regNo": 33},
+  {"name": "Raja Rakesh Ribero", "gender": "Boy", "house": "House no 06", "status": "Not Active", "parental": "Single Parent", "class": "Degree", "medium": "English", "institution": "Ismail Yusug College", "blood": "O+", "dob": "2005-11-02", "doa": "2012-08-06", "dor": null, "caseNo": "189/A/2013", "aadhar": "377424998741", "restorationDate": "2023-11-06", "remark": "Self Release", "age": 20, "regNo": 4240},
+  {"name": "Sharad Sugariv Waghamare", "gender": "Boy", "house": "House no 06", "status": "Active", "parental": "Both Parents", "class": "Class 5", "medium": "Marathi", "institution": null, "blood": null, "dob": "2016-09-12", "doa": "2026-05-06", "dor": null, "caseNo": null, "aadhar": "230288836707", "restorationDate": null, "remark": null, "age": 9, "regNo": 38},
+  {"name": "Rahul Pappu Ravani", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 11", "medium": "Hindi", "institution": "Vasudev School", "blood": "B+", "dob": "2010-08-07", "doa": "2017-06-24", "dor": "2026-07-09", "caseNo": "330/A/2017", "aadhar": "585496738130", "restorationDate": null, "remark": null, "age": 15, "regNo": 4476},
+  {"name": "Ajay Sanjay Durve", "gender": "Boy", "house": "House no 7", "status": "Not Active", "parental": "Single Parent", "class": "Vocational Training", "medium": "Marathi", "institution": "LaljiMohtra Tech. Inst.", "blood": "O+", "dob": "2008-03-15", "doa": "2018-07-06", "dor": "2026-07-09", "caseNo": "224/P/2018", "aadhar": "65637997353", "restorationDate": "2026-03-27", "remark": "Self Realease complitted age of 18 yrs.", "age": 18, "regNo": 4527},
+  {"name": "Ashok Mannu Kethil", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "Hindi", "institution": "Vasudev School", "blood": "AB+", "dob": "2011-11-11", "doa": "2021-04-06", "dor": "2026-06-09", "caseNo": "A/2021", "aadhar": "787703692351", "restorationDate": null, "remark": null, "age": 14, "regNo": 4641},
+  {"name": "Vaibhav Shekhar Vanve", "gender": "Boy", "house": "House no 7", "status": "Rstored", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "BMC Gundawali School", "blood": "O+", "dob": "2013-11-19", "doa": "2022-05-02", "dor": "2026-06-09", "caseNo": "531/A/2022", "aadhar": "650369864706", "restorationDate": "2026-04-23", "remark": "HO to Mother", "age": 12, "regNo": 4711},
+  {"name": "Rohit Venkatesh Irulan", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 5", "medium": "English", "institution": "BMC Gundawali School", "blood": "AB+", "dob": "2015-01-14", "doa": "2022-05-23", "dor": "2026-06-09", "caseNo": "77/A/22", "aadhar": "652979148449", "restorationDate": null, "remark": null, "age": 11, "regNo": 4716},
+  {"name": "A Rajagopal Ajyappan Kounder", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 5", "medium": "English", "institution": "BMC Gundawali School", "blood": "B+", "dob": "2014-11-24", "doa": "2022-09-05", "dor": "2026-09-17", "caseNo": "CC/2021", "aadhar": "345912515286", "restorationDate": null, "remark": null, "age": 11, "regNo": 4772},
+  {"name": "Durgesh Sandeep Kagda", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 11", "medium": "English", "institution": "BMC Gundawali School", "blood": "A+", "dob": "2010-09-23", "doa": "2014-06-16", "dor": "2027-01-31", "caseNo": "100/A/2014", "aadhar": "310846074565", "restorationDate": "2024-05-27", "remark": null, "age": 15, "regNo": 4352},
+  {"name": "Ganesh Sukhdev Sakat", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 12", "medium": "Marathi", "institution": "Sathay Jr. College", "blood": "O+", "dob": "2009-11-30", "doa": "2021-04-06", "dor": "2026-06-09", "caseNo": "A/2021", "aadhar": "290925315109", "restorationDate": "2024-05-27", "remark": null, "age": 16, "regNo": 4642},
+  {"name": "Shivam Ramesh Yadav", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 9", "medium": "Hindi", "institution": "Vasudev School", "blood": null, "dob": "2012-09-14", "doa": "2024-06-27", "dor": "2026-06-26", "caseNo": "228/P/24", "aadhar": "808174642897", "restorationDate": null, "remark": null, "age": 13, "regNo": 4896},
+  {"name": "Tushar Sarjirao Kamble", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 10", "medium": "Marathi", "institution": "Vasudev School", "blood": "A+", "dob": "2011-06-16", "doa": "2017-04-19", "dor": "2027-01-22", "caseNo": "218/A/2017", "aadhar": "600320151582", "restorationDate": null, "remark": "Trasfed from HN 05 on 22/05/25", "age": 15, "regNo": 4472},
+  {"name": "Joyl Suresh Balkot", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": "Hindi", "institution": "Vasudev School", "blood": "B+", "dob": "2013-12-13", "doa": "2019-09-30", "dor": "2026-10-21", "caseNo": "28/A/2019", "aadhar": "616753542670", "restorationDate": null, "remark": "Trasfed from HN 05 on 22/05/25", "age": 12, "regNo": 4580},
+  {"name": "Rohit Prakash Soni", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "NIOS (OBE)", "medium": "Hindi", "institution": "NIOS", "blood": "B+", "dob": "2009-11-19", "doa": "2022-09-05", "dor": "2027-04-09", "caseNo": "P/2022", "aadhar": "989904924752", "restorationDate": null, "remark": "Trasfed from HN 05 on 22/05/25", "age": 16, "regNo": 4770},
+  {"name": "Anthony Henry Miranda", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 4", "medium": "Hindi", "institution": "Vasudev School", "blood": "O+", "dob": "2016-05-19", "doa": "2023-03-17", "dor": "2027-03-19", "caseNo": "258/P/23", "aadhar": "830175096316", "restorationDate": null, "remark": "Trasfed from HN 05 on 22/05/25", "age": 10, "regNo": 4847},
+  {"name": "Satyam Kumar Baiju Chaudhari", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 5", "medium": "English", "institution": "BMC Gundawali School", "blood": "O+", "dob": "2015-11-01", "doa": "2024-02-15", "dor": "2027-02-14", "caseNo": "A/2024", "aadhar": "460674494175", "restorationDate": null, "remark": "Trasfed from HN 05 on 22/05/25", "age": 10, "regNo": 4891},
+  {"name": "Aaron Amar More", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 6", "medium": "Hindi", "institution": "Vasudev School", "blood": "O+", "dob": "2015-04-13", "doa": "2024-07-04", "dor": "2026-07-03", "caseNo": "230/A/24", "aadhar": "665978962762", "restorationDate": null, "remark": "Trasfed from HN 05 on 22/05/25", "age": 11, "regNo": 4897},
+  {"name": "Raja Babu Devendra", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 10", "medium": "English", "institution": "Holy Family School", "blood": "A+", "dob": "2009-05-19", "doa": "2022-03-04", "dor": "2027-03-14", "caseNo": "T/ 2022", "aadhar": "728048296514", "restorationDate": null, "remark": "Trasfed from HN 11 on 22/05/25", "age": 17, "regNo": 4693},
+  {"name": "Arvind Kumar Velu Nadar", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 6", "medium": "Hindi", "institution": "Vasudev School", "blood": "B+", "dob": "2015-01-04", "doa": "2019-01-29", "dor": "2027-01-22", "caseNo": "548/A/2018", "aadhar": "69126965596", "restorationDate": null, "remark": "Trasfed from HN 11 on 22/05/25", "age": 11, "regNo": 4563},
+  {"name": "Mohammad Hasan Moh. Rafiq Shaikh", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 8", "medium": "Hindi", "institution": "Vasudev School", "blood": "A+", "dob": "2013-05-16", "doa": "2019-01-29", "dor": "2026-07-15", "caseNo": "634/P/2018", "aadhar": "408484336538", "restorationDate": null, "remark": "Trasfed from HN 11 on 22/05/25", "age": 13, "regNo": 4560},
+  {"name": "Sunny Bansilal Mazi", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 5", "medium": "Hindi", "institution": "Vasudev School", "blood": "B+", "dob": "2015-01-14", "doa": "2019-01-29", "dor": "2026-07-15", "caseNo": "1112/P/2018", "aadhar": "243040437400", "restorationDate": null, "remark": "Trasfed from HN 11 on 22/05/25", "age": 11, "regNo": 4562},
+  {"name": "Om Sunny Patel", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "Hindi", "institution": "Vasudev School", "blood": "O+", "dob": "2010-09-24", "doa": "2017-06-17", "dor": "2027-01-31", "caseNo": "306/A/2017", "aadhar": "909046895927", "restorationDate": null, "remark": "Trasfed from HN 11 on 22/05/25", "age": 15, "regNo": 4473},
+  {"name": "Irfaan Hamid Router", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 8", "medium": "English", "institution": "Holy Family School", "blood": "B+", "dob": "2013-01-19", "doa": "2022-08-13", "dor": "2026-08-22", "caseNo": "A/2022", "aadhar": "891237853491", "restorationDate": null, "remark": "Trasfed from HN 11 on 22/05/25", "age": 13, "regNo": 4760},
+  {"name": "Vijay Shashikant Sonawane", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Orphan", "class": "Class 11", "medium": "Marathi", "institution": "Holy Family School", "blood": "B+", "dob": "2010-01-26", "doa": "2020-08-12", "dor": "2026-07-23", "caseNo": "T/2020", "aadhar": "327521360957", "restorationDate": null, "remark": "Trasfed from HN 11 on 22/05/25", "age": 16, "regNo": 4594},
+  {"name": "Aryan Deepak Dalvi", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": "Marathi", "institution": "Holy Family School", "blood": "AB+", "dob": "2014-08-28", "doa": "2019-01-29", "dor": "2027-01-22", "caseNo": "687/A/2018", "aadhar": "827133360698", "restorationDate": null, "remark": "Trasfed from HN 11 on 22/05/25", "age": 11, "regNo": 4561},
+  {"name": "Ashish Kashinath Bansode", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Both Parents", "class": "Class 9", "medium": "Semi-Marathi", "institution": "Holy Family School", "blood": "B+", "dob": "2011-02-06", "doa": "2018-07-06", "dor": "2027-01-22", "caseNo": "368/A/2017", "aadhar": "877931234292", "restorationDate": null, "remark": null, "age": 15, "regNo": 4523},
+  {"name": "Arjun Sundar Singh", "gender": "Boy", "house": "House no 7", "status": "Active", "parental": "Single Parent", "class": "Class 12", "medium": "English", "institution": "Sathay Jr. College", "blood": "O+", "dob": "2009-09-17", "doa": "2023-06-02", "dor": "2026-06-26", "caseNo": "360/T/23", "aadhar": "960962333024", "restorationDate": null, "remark": null, "age": 16, "regNo": 4866},
+  {"name": "Moh. Amaan Moh. Nasir Shaikh", "gender": "Boy", "house": "House no 7", "status": "Transfered", "parental": "Single Parent", "class": "Class 6", "medium": "Hindi", "institution": "Vasudev School", "blood": "A+", "dob": "2013-05-05", "doa": "2023-06-01", "dor": "2026-06-27", "caseNo": "236/P/23", "aadhar": "754730314437", "restorationDate": "19-12-2025", "remark": "Trasfed from HN 05 on 13/06/25. Transfered to David Sasoon on 19/12/2025", "age": 13, "regNo": 4864},
+  {"name": "Mani Murgesh Singaram", "gender": "Boy", "house": "House no 7", "status": "Not Active", "parental": "Single Parent", "class": "Working", "medium": null, "institution": "Restaurant", "blood": "O+", "dob": "2006-06-24", "doa": "2013-06-12", "dor": null, "caseNo": null, "aadhar": "863954242592", "restorationDate": "2024-10-07", "remark": "Self Release", "age": 20, "regNo": 4295},
+  {"name": "Aakash Dilip Waghoskar", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Orphan", "class": "Class 12", "medium": "English", "institution": "Holy Family Jr. College", "blood": "O+", "dob": "2008-05-05", "doa": "2013-06-08", "dor": "2026-01-31", "caseNo": "165/A/2013", "aadhar": "747542387972", "restorationDate": "17-09-2025", "remark": "Self Release", "age": 18, "regNo": 4310},
+  {"name": "Arjun Sundar Singh", "gender": "Boy", "house": "House No 11", "status": "Transfered", "parental": "Single Parent", "class": "Class 12", "medium": "English", "institution": "Sathay Jr. College", "blood": "O+", "dob": "2009-09-17", "doa": "2023-02-06", "dor": "2026-06-26", "caseNo": "360/T/23", "aadhar": "960962333024", "restorationDate": null, "remark": null, "age": 16, "regNo": 4866},
+  {"name": "Raj Devanand Aadhav", "gender": "Boy", "house": "House No 11", "status": "Restored", "parental": "Single Parent", "class": "Working & Studying", "medium": "Marathi", "institution": "NIOS", "blood": "O+", "dob": "2007-11-24", "doa": "2021-08-26", "dor": "2026-09-04", "caseNo": "30/A/2021", "aadhar": "305816119770", "restorationDate": "27-11-2025", "remark": "Self Release", "age": 18, "regNo": 4676},
+  {"name": "Aryan Garibdas Lokhande", "gender": "Boy", "house": "House No 11", "status": "Restored", "parental": "Orphan", "class": "Working & Studying", "medium": "Marathi", "institution": "NIOS", "blood": "O+", "dob": "2007-12-21", "doa": "2020-10-09", "dor": "2025-10-06", "caseNo": null, "aadhar": "615217434429", "restorationDate": "23-12-2025", "remark": "Self Release", "age": 18, "regNo": 4601},
+  {"name": "Mani Murgesh Singaram", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Single Parent", "class": "Working", "medium": null, "institution": "Restaurant", "blood": "O+", "dob": "2006-06-24", "doa": "2013-06-12", "dor": null, "caseNo": null, "aadhar": "863954242592", "restorationDate": "2024-10-07", "remark": "Self Release", "age": 20, "regNo": 4295},
+  {"name": "Mohd Saad Asir Khan", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Single Parent", "class": "Working", "medium": null, "institution": "Restaurant", "blood": "A+", "dob": "2005-05-06", "doa": "2018-07-06", "dor": null, "caseNo": "544/T/2017", "aadhar": "770527677718", "restorationDate": "24-05-2023", "remark": "Self Release", "age": 21, "regNo": 4528},
+  {"name": "Raja Rakesh Ribero", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Single Parent", "class": "Working", "medium": null, "institution": "Corporate", "blood": "O+", "dob": "2005-11-02", "doa": "2012-08-06", "dor": null, "caseNo": "189/A/2013", "aadhar": "377424998741", "restorationDate": "2023-06-11", "remark": "Self Release", "age": 20, "regNo": 4240},
+  {"name": "Mangesh Mahendra Dhody", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Orphan", "class": "Working & Studying", "medium": "English", "institution": "Corporate", "blood": "B+", "dob": "2006-06-12", "doa": "2015-07-04", "dor": null, "caseNo": "395/A/2015", "aadhar": "857993952278", "restorationDate": "2024-07-03", "remark": "Self Released", "age": 20, "regNo": 4379},
+  {"name": "Prathamesh Mahendra Dhody", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Orphan", "class": "Working", "medium": null, "institution": "Hotel", "blood": "B+", "dob": "2005-08-27", "doa": "2015-07-04", "dor": null, "caseNo": "396/A/2015", "aadhar": "813241812483", "restorationDate": "2023-09-01", "remark": "Self Released", "age": 20, "regNo": 4378},
+  {"name": "Ganesh Anil Jaiswal", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Single Parent", "class": "Vocational Training", "medium": null, "institution": "LaljiMohtra Tech. Inst.", "blood": "O+", "dob": "2006-10-21", "doa": "2018-07-19", "dor": null, "caseNo": "640/P/2017", "aadhar": "391020304022", "restorationDate": "2025-01-31", "remark": "Self Released", "age": 19, "regNo": 4536},
+  {"name": "Shahil Indrakumar Kerketta", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Single Parent", "class": "Degree", "medium": "English", "institution": "St. Xavier's Engineering College", "blood": "AB+", "dob": "2007-12-29", "doa": "2012-06-30", "dor": "2026-06-30", "caseNo": null, "aadhar": "784037687109", "restorationDate": null, "remark": null, "age": 18, "regNo": 4460},
+  {"name": "Yash Pritam Patel", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Orphan", "class": "Working", "medium": null, "institution": "Hotel", "blood": "B+", "dob": "2005-03-30", "doa": "2020-05-20", "dor": null, "caseNo": null, "aadhar": "919583543476", "restorationDate": null, "remark": null, "age": 21, "regNo": 4650},
+  {"name": "Ajay Sanjay Durve", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Single Parent", "class": "Internship", "medium": null, "institution": "LaljiMohtra Tech. Inst.", "blood": "O+", "dob": "2008-03-15", "doa": "2018-07-06", "dor": "2026-07-09", "caseNo": "224/P/2018", "aadhar": "65637997353", "restorationDate": "2026-03-27", "remark": null, "age": 18, "regNo": 4527},
+  {"name": "Pawan Vallya Urade", "gender": "Boy", "house": "House No 11", "status": "Active but Restored", "parental": "Orphan", "class": "Working", "medium": null, "institution": "Hotel", "blood": "A+", "dob": "2007-03-22", "doa": "2015-12-11", "dor": null, "caseNo": "719/A/15", "aadhar": "801580173413", "restorationDate": "28-08-2025", "remark": "Self Release", "age": 19, "regNo": 4449},
+  {"name": "Deepak Harish Enke", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 12", "medium": "English", "institution": "MVM Jr. College", "blood": "O+", "dob": "2008-07-03", "doa": "2013-06-18", "dor": "2027-03-19", "caseNo": "181/A/18", "aadhar": "610674130256", "restorationDate": null, "remark": null, "age": 18, "regNo": 4301},
+  {"name": "Piter Vijay Pillai", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 6", "medium": "English", "institution": "St. Blaise School", "blood": "B+", "dob": "2015-04-25", "doa": "2021-06-16", "dor": "2026-07-01", "caseNo": "133/A/21", "aadhar": "538063873691", "restorationDate": null, "remark": null, "age": 11, "regNo": 4659},
+  {"name": "Ranvijay Bachchan Singh", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Both Parents", "class": "Class 4", "medium": "English", "institution": "St. Blaise School", "blood": "O+", "dob": "2017-05-05", "doa": "2022-04-19", "dor": "2026-06-11", "caseNo": "25/A/22", "aadhar": "286590002278", "restorationDate": null, "remark": null, "age": 9, "regNo": 4709},
+  {"name": "Ansh Raviprakash Rai", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "English", "institution": "Sunflower School", "blood": "A+", "dob": "2013-05-01", "doa": "2022-06-15", "dor": "2026-06-26", "caseNo": "A\\22", "aadhar": "230542046640", "restorationDate": null, "remark": null, "age": 13, "regNo": 4730},
+  {"name": "Rohit Arjun Suradkar", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "B+", "dob": "2012-12-16", "doa": "2022-06-24", "dor": "2026-06-06", "caseNo": "232/A/20", "aadhar": "508821809652", "restorationDate": null, "remark": null, "age": 13, "regNo": 4731},
+  {"name": "Rohan Arjun Suradkar", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 3", "medium": "English", "institution": "Sunflower School", "blood": "B+", "dob": "2014-12-03", "doa": "2022-06-24", "dor": "2026-06-06", "caseNo": "233/A/20", "aadhar": "367769145327", "restorationDate": null, "remark": null, "age": 11, "regNo": 4732},
+  {"name": "Bhavesh Prakash Shinde", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 9", "medium": "Semi-Marathi", "institution": "St. Catherine's School", "blood": "AB+", "dob": "2012-04-12", "doa": "2022-11-17", "dor": "2026-10-18", "caseNo": "T/22", "aadhar": "811761632613", "restorationDate": null, "remark": null, "age": 14, "regNo": 4809},
+  {"name": "Charan Narayan Shripati", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 12", "medium": "English", "institution": "MVM Jr. College", "blood": "B+", "dob": "2008-08-22", "doa": "2022-12-15", "dor": "2026-12-20", "caseNo": "594/T/22", "aadhar": "875407320713", "restorationDate": null, "remark": null, "age": 17, "regNo": 4818},
+  {"name": "Pole Vijay Pillai", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 3", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2017-05-10", "doa": "2023-01-19", "dor": "2027-04-29", "caseNo": null, "aadhar": "591291571737", "restorationDate": null, "remark": null, "age": 9, "regNo": 4837},
+  {"name": "Shiva Rajesh Dubey", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2013-11-08", "doa": "2023-02-17", "dor": "2027-03-18", "caseNo": "237/P/23", "aadhar": "629203552715", "restorationDate": null, "remark": null, "age": 12, "regNo": 4840},
+  {"name": "Saan Rajesh Dubey", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 7", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2013-11-08", "doa": "2023-02-17", "dor": "2026-06-18", "caseNo": "238/P/23", "aadhar": "212759260947", "restorationDate": null, "remark": null, "age": 12, "regNo": 4841},
+  {"name": "Aditya Ramesh Sadhaphule", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Orphan", "class": "Class 9", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2012-12-01", "doa": "2023-04-17", "dor": "2026-04-29", "caseNo": "298/P/23", "aadhar": "831187358415", "restorationDate": null, "remark": null, "age": 13, "regNo": 4853},
+  {"name": "Vijayragavan Ramesh Shetty", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Orphan", "class": "Class 12", "medium": "English", "institution": "MVM Jr. College", "blood": "O+", "dob": "2010-03-04", "doa": "2023-05-25", "dor": "2026-06-18", "caseNo": "356/T/23", "aadhar": "948029865629", "restorationDate": null, "remark": null, "age": 16, "regNo": 4861},
+  {"name": "Aaditya Pratap Roy", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 12", "medium": "English", "institution": "Sathay Jr. College", "blood": "A+", "dob": "2008-12-22", "doa": "2023-05-25", "dor": "2026-06-18", "caseNo": "357/T/23", "aadhar": "899493871418", "restorationDate": null, "remark": null, "age": 17, "regNo": 4862},
+  {"name": "Sohil Akash Kharvi", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Orphan", "class": "Class 3", "medium": "English", "institution": "Sunflower School", "blood": "B+", "dob": "2018-06-15", "doa": "2024-04-20", "dor": "2026-05-30", "caseNo": "60/P/22", "aadhar": "396690779083", "restorationDate": null, "remark": null, "age": 8, "regNo": 4894},
+  {"name": "Anish Harish Yadav", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 3", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2018-01-10", "doa": "2024-04-20", "dor": "2026-06-18", "caseNo": "989/P/22", "aadhar": "249656090514", "restorationDate": null, "remark": null, "age": 8, "regNo": 4895},
+  {"name": "Hitesh Sachin Jadhav", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Orphan", "class": "Class 12", "medium": "English", "institution": "Holy Family Jr. College", "blood": "O+", "dob": "2009-11-24", "doa": "2024-08-23", "dor": "2026-08-25", "caseNo": "288/T/24", "aadhar": "521256993232", "restorationDate": null, "remark": null, "age": 16, "regNo": 4903},
+  {"name": "Shivshant Sushil Gupta", "gender": "Boy", "house": "House No 12", "status": "Transfered", "parental": "Single Parent", "class": "Class 11", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2009-06-05", "doa": "2024-09-24", "dor": "2026-09-20", "caseNo": "349/A/24", "aadhar": "965127559194", "restorationDate": null, "remark": null, "age": 17, "regNo": 4904},
+  {"name": "Ayush Santosh Salunkhe", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Orphan", "class": "Class 6", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "O+", "dob": "2013-07-08", "doa": "2025-03-13", "dor": "2027-03-07", "caseNo": "416/A/23", "aadhar": "970469296381", "restorationDate": null, "remark": null, "age": 13, "regNo": 4911},
+  {"name": "Albert Joseph Fernandes", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Orphan", "class": "Class 9", "medium": "Semi-Marathi", "institution": "St. Catherine's School", "blood": "B+", "dob": "2011-09-30", "doa": "2025-03-13", "dor": "2027-03-07", "caseNo": "A/22", "aadhar": "373878984387", "restorationDate": null, "remark": null, "age": 14, "regNo": 4910},
+  {"name": "Yash Devanand Adav", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Single Parent", "class": "Class 10", "medium": "Marathi", "institution": "St. Catherine's School", "blood": "O+", "dob": "2012-03-13", "doa": "2021-08-26", "dor": "2026-09-04", "caseNo": "29/A/2021", "aadhar": "401506369771", "restorationDate": null, "remark": "Shifted from Ho 03on 22/05/25", "age": 14, "regNo": 4677},
+  {"name": "Pawan Vallya Urade", "gender": "Boy", "house": "House No 12", "status": "Not Active", "parental": "Orphan", "class": "Vocational Training", "medium": "English", "institution": "Yuva Parivartan", "blood": "A+", "dob": "2007-03-22", "doa": "2015-12-11", "dor": null, "caseNo": "719/A/15", "aadhar": "801580173413", "restorationDate": "28-08-2025", "remark": "Self Release", "age": 19, "regNo": 4449},
+  {"name": "Sonu jagdish Arya", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2012-06-05", "doa": "2025-07-11", "dor": "2026-07-11", "caseNo": "1091/A/2018", "aadhar": "840938871711", "restorationDate": null, "remark": null, "age": 14, "regNo": 4916},
+  {"name": "Monu Jagdish Arya", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "English", "institution": "Sunflower School", "blood": "O+", "dob": "2013-07-08", "doa": "2025-07-11", "dor": "2026-07-11", "caseNo": "1090/A/2010", "aadhar": "482972332069", "restorationDate": null, "remark": null, "age": 13, "regNo": 4919},
+  {"name": "Om Babu Airphla", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "English", "institution": "Sunflower School", "blood": "B+", "dob": "2012-11-29", "doa": "2025-07-11", "dor": "2026-07-11", "caseNo": "265/P/25", "aadhar": "972938105832", "restorationDate": null, "remark": null, "age": 13, "regNo": 4918},
+  {"name": "Chand mohmad Sheikh", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Both Parents", "class": "Class 4", "medium": "English", "institution": "Sunflower School", "blood": "B+", "dob": "2017-04-14", "doa": "2025-07-11", "dor": "2026-07-11", "caseNo": "128/P/22", "aadhar": null, "restorationDate": null, "remark": null, "age": 9, "regNo": 4921},
+  {"name": "Mayuresh Rakesh Solam", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Both Parents", "class": null, "medium": null, "institution": null, "blood": null, "dob": "2019-05-15", "doa": "2026-06-29", "dor": null, "caseNo": "300/P/24", "aadhar": null, "restorationDate": null, "remark": null, "age": 7, "regNo": 4934},
+  {"name": "Ajay Mangesh Kambale", "gender": "Boy", "house": "House No 12", "status": "Active", "parental": "Orphan", "class": null, "medium": null, "institution": null, "blood": null, "dob": "2017-04-14", "doa": "2026-06-29", "dor": null, "caseNo": "166/P/26", "aadhar": null, "restorationDate": null, "remark": null, "age": 9, "regNo": 4935},
+  {"name": "21 +1 = 22", "gender": "Boy", "house": "House No 12", "status": null, "parental": null, "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "TEJASH SANDESH JAVALIYA", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 6", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2014-02-15", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": "953120756451\n 802987556459", "restorationDate": null, "remark": null, "age": 12, "regNo": 9698},
+  {"name": "NIKHIL RAMU KHANZODE", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 6", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2013-10-31", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 12, "regNo": 9706},
+  {"name": "ALPESH PANJYA BOND", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2013-05-02", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 13, "regNo": 9714},
+  {"name": "AARAV BHANUDAS DONGRE", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 6", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2013-12-13", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": "603578714974", "restorationDate": null, "remark": null, "age": 12, "regNo": 9654},
+  {"name": "YUGANSH VIJAY CHACHULYA", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 6", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2013-12-03", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": "386699773491\n 304711580946", "restorationDate": null, "remark": null, "age": 12, "regNo": 9672},
+  {"name": "JOSTIN JOEL KHAVRI", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2013-06-05", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": "386699773491\n 304711580946", "restorationDate": null, "remark": null, "age": 13, "regNo": 9645},
+  {"name": "SAM SILVESTER KHAVRI", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2013-08-22", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": "386699773491\n 304711580946", "restorationDate": null, "remark": null, "age": 12, "regNo": 9701},
+  {"name": "VYAN VELANCY BENKA", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2013-08-03", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": "942458602568", "restorationDate": null, "remark": null, "age": 12, "regNo": 9700},
+  {"name": "MILAN SANJU SAMBAR", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2013-09-20", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": "201273008768", "restorationDate": null, "remark": null, "age": 12, "regNo": 9646},
+  {"name": "SUSHANT SUNIL DOLHARE", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2012-07-06", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 14, "regNo": 9699},
+  {"name": "TEJAS SURESH BHOYE", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2012-01-04", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 14, "regNo": 9696},
+  {"name": "PRANIT SATISH BHADANGE", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2012-06-08", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 14, "regNo": 9711},
+  {"name": "DIPUL DIPAK THAKARE", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2012-07-24", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 13, "regNo": null},
+  {"name": "NIRANJAN RAJU SAMBAR", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 8", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2012-05-17", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 14, "regNo": null},
+  {"name": "KAMESH AVINASH KADU", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2012-08-29", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 13, "regNo": 9689},
+  {"name": "ASHISH LADAK NAGVASHI", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 10", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2008-07-06", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 18, "regNo": 9618},
+  {"name": "Kunal Anil Dumade", "gender": "Boy", "house": "Vasai House", "status": "Active", "parental": "Both Parents", "class": "Class 7", "medium": "Marathi", "institution": "St. Xavier's School, Manikpur", "blood": null, "dob": "2012-11-21", "doa": null, "dor": "2027-04-30", "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": 13, "regNo": null},
+  {"name": "14+1+3= 18", "gender": "Boy", "house": "Vasai House", "status": null, "parental": null, "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null},
+  {"name": "valiyan vihan brother.", "gender": "Boy", "house": "Vasai House", "status": null, "parental": null, "class": null, "medium": null, "institution": null, "blood": null, "dob": null, "doa": null, "dor": null, "caseNo": null, "aadhar": null, "restorationDate": null, "remark": null, "age": null, "regNo": null}
+];
+
+</script>
+<script>
+var charts={};
+var originalData=JSON.parse(JSON.stringify(allChildren));
+var editIndex=-1;
+var dashboardInitialized=false;
+var palette=['#4f46e5','#ec4899','#14b8a6','#f59e0b','#8b5cf6','#10b981','#ef4444','#3b82f6','#f97316','#06b6d4','#a855f7','#84cc16','#e11d48','#0ea5e9','#d946ef'];
+
+function initDashboard(){
+  if(dashboardInitialized)return;
+  dashboardInitialized=true;
+  Chart.defaults.font.family="'Segoe UI', system-ui, sans-serif";
+  Chart.defaults.font.size=12;
+  Chart.defaults.color='#64748b';
+  Chart.defaults.plugins.legend.position='bottom';
+  Chart.defaults.plugins.legend.labels.usePointStyle=true;
+  Chart.defaults.plugins.legend.labels.padding=15;
+
+  var houseFilter=document.getElementById('houseFilter');
+  Array.from(new Set(allChildren.map(function(c){return c.house;}).filter(Boolean))).sort().forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h;houseFilter.appendChild(o);});
+
+  var loaded=loadFromStorage();
+  if(loaded){recalcAndUpdateAll();showToast('\uD83D\uDCBE Loaded saved data from browser.','info');}
+  else{buildAllCharts();renderTable(allChildren);}
+}
+
+// ===== HELPER: filter active only =====
+function activeChildren(){
+  return allChildren.filter(function(c){return c.status==='Active'||c.status==='Active but Restored';});
+}
+function exitedChildren(){
+  return allChildren.filter(function(c){return c.status!=='Active'&&c.status!=='Active but Restored';});
+}
+
+// ===== STATS: active-only =====
+function calcActiveStats(){
+  var data=activeChildren();
+  var girls=0,boys=0;
+  var parental={},medium={},ageGroups={},blood={},house={},eduCats={},institutions={};
+  var genderByHouse={},parentalByGender={};
+  var ageSum=0,ageCount=0;
+  var activeOnly=0,activeRestored=0;
+  data.forEach(function(c){
+    if(c.gender==='Girl')girls++;else boys++;
+    if(c.status==='Active')activeOnly++;else if(c.status==='Active but Restored')activeRestored++;
+    var par=c.parental||'Unknown';parental[par]=(parental[par]||0)+1;
+    if(!parentalByGender[par])parentalByGender[par]={Girl:0,Boy:0};parentalByGender[par][c.gender]++;
+    if(c.medium)medium[c.medium]=(medium[c.medium]||0)+1;
+    if(c.age!=null&&c.age>0&&c.age<=25){ageSum+=c.age;ageCount++;if(c.age<=6)ageGroups['0-6']=(ageGroups['0-6']||0)+1;else if(c.age<=10)ageGroups['7-10']=(ageGroups['7-10']||0)+1;else if(c.age<=14)ageGroups['11-14']=(ageGroups['11-14']||0)+1;else if(c.age<=18)ageGroups['15-18']=(ageGroups['15-18']||0)+1;else ageGroups['18+']=(ageGroups['18+']||0)+1;}
+    if(c.blood)blood[c.blood]=(blood[c.blood]||0)+1;
+    var h=c.house||'Unknown';house[h]=(house[h]||0)+1;
+    if(!genderByHouse[h])genderByHouse[h]={Girl:0,Boy:0};genderByHouse[h][c.gender]++;
+    var inst=(c.institution||'').trim();if(inst&&inst.toUpperCase()!=='NA'&&inst.toUpperCase()!=='NONE')institutions[inst]=(institutions[inst]||0)+1;
+    var cls=(c.class||'').toLowerCase(),cat='Other';
+    if(cls.indexOf('nursary')>=0||cls.indexOf('nursery')>=0||cls.indexOf('kg')>=0)cat='Pre-Primary';
+    else if(cls.indexOf('class 1')>=0||cls.indexOf('class 2')>=0||cls.indexOf('class 3')>=0)cat='Primary (1-3)';
+    else if(cls.indexOf('class 4')>=0||cls.indexOf('class 5')>=0)cat='Primary (4-5)';
+    else if(cls.indexOf('class 6')>=0||cls.indexOf('class 7')>=0)cat='Middle (6-7)';
+    else if(cls.indexOf('class 8')>=0||cls.indexOf('class 9')>=0||cls.indexOf('class 10')>=0)cat='Secondary (8-10)';
+    else if(cls.indexOf('class 11')>=0||cls.indexOf('class 12')>=0||cls.indexOf('hsc')>=0||cls.indexOf('ssc')>=0)cat='Higher Secondary (11-12)';
+    else if(cls.indexOf('nios')>=0)cat='NIOS';else if(cls.indexOf('nursing')>=0)cat='Nursing';
+    else if(cls.indexOf('degree')>=0||cls.indexOf('bsw')>=0)cat='College / Degree';
+    else if(cls.indexOf('working')>=0)cat='Working';
+    else if(cls.indexOf('vocational')>=0||cls.indexOf('diploma')>=0)cat='Vocational';
+    else if(cls.indexOf('internship')>=0)cat='Internship';
+    eduCats[cat]=(eduCats[cat]||0)+1;
+  });
+  return{total:data.length,girls:girls,boys:boys,activeOnly:activeOnly,activeRestored:activeRestored,
+    parental:parental,medium:medium,ageGroups:ageGroups,blood:blood,house:house,eduCats:eduCats,
+    institutions:institutions,genderByHouse:genderByHouse,parentalByGender:parentalByGender,
+    avgAge:ageCount>0?Math.round(ageSum/ageCount*10)/10:0};
+}
+
+// ===== STATS: exited children year-wise =====
+function extractYear(dateStr){
+  if(!dateStr)return null;
+  var parts=dateStr.split('-');
+  if(parts.length===3){
+    if(parts[0].length===4)return parts[0];
+    if(parts[2].length===4)return parts[2];
+  }
+  return null;
+}
+
+function calcExitedStats(){
+  var restored=allChildren.filter(function(c){return c.status&&c.status.toLowerCase().includes('restored')&&c.status!=='Active but Restored';});
+  var notActive=allChildren.filter(function(c){return c.status==='Not Active';});
+  var transferred=allChildren.filter(function(c){return c.status==='Transferred'||c.status==='Transfered';});
+  
+  // Year-wise for restored (by restoration date)
+  var restoredYears={};
+  restored.forEach(function(c){var y=extractYear(c.restorationDate||c.doa);if(y){restoredYears[y]=(restoredYears[y]||0)+1;}});
+  
+  // Year-wise for not active (by DOA)
+  var notActiveYears={};
+  notActive.forEach(function(c){var y=extractYear(c.doa);if(y){notActiveYears[y]=(notActiveYears[y]||0)+1;}});
+  
+  // Year-wise for transferred (by DOA)
+  var transferredYears={};
+  transferred.forEach(function(c){var y=extractYear(c.doa);if(y){transferredYears[y]=(transferredYears[y]||0)+1;}});
+  
+  // All admissions by year
+  var admissionYears={};
+  allChildren.forEach(function(c){var y=extractYear(c.doa);if(y){admissionYears[y]=(admissionYears[y]||0)+1;}});
+  
+  return{
+    restored:restored.length,notActive:notActive.length,transferred:transferred.length,
+    restoredYears:restoredYears,notActiveYears:notActiveYears,transferredYears:transferredYears,
+    admissionYears:admissionYears
+  };
+}
+
+// ===== STATUS BY GENDER (all) =====
+function calcStatusGender(){
+  var result={};
+  allChildren.forEach(function(c){
+    var s=c.status||'Unknown';
+    if(s==='Rstored')s='Restored';
+    if(s==='Transfered')s='Transferred';
+    if(!result[s])result[s]={Girl:0,Boy:0};
+    result[s][c.gender]++;
+  });
+  return result;
+}
+
+// ===== BUILD ALL CHARTS =====
+function buildAllCharts(){
+  var as=calcActiveStats();
+  var es=calcExitedStats();
+  var sg=calcStatusGender();
+  buildActiveCharts(as);
+  buildExitedCharts(es);
+  buildOtherCharts(as,sg);
+}
+
+function buildActiveCharts(s){
+  // Gender
+  charts.gender=new Chart(document.getElementById('genderChart'),{type:'doughnut',data:{labels:['Boys','Girls'],datasets:[{data:[s.boys,s.girls],backgroundColor:['#3b82f6','#ec4899'],borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:15,usePointStyle:true}}}}});
+  // Age
+  var ageOrder=['0-6','7-10','11-14','15-18','18+'];
+  charts.age=new Chart(document.getElementById('ageChart'),{type:'bar',data:{labels:ageOrder,datasets:[{data:ageOrder.map(function(a){return s.ageGroups[a]||0;}),backgroundColor:['#6366f1','#8b5cf6','#a855f7','#ec4899','#f59e0b'],borderRadius:8,barThickness:40}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+  // Active vs Active but Restored
+  charts.activeStatus=new Chart(document.getElementById('activeStatusChart'),{type:'doughnut',data:{labels:['Active','Active but Restored'],datasets:[{data:[s.activeOnly,s.activeRestored],backgroundColor:['#10b981','#f59e0b'],borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:15,usePointStyle:true}}}}});
+  // Parental
+  charts.parental=new Chart(document.getElementById('parentalChart'),{type:'pie',data:{labels:Object.keys(s.parental),datasets:[{data:Object.values(s.parental),backgroundColor:['#f59e0b','#ec4899','#4f46e5'],borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}});
+  // Medium
+  var mediumOrder=['English','Marathi','Hindi','Semi-Marathi','Semi-Hindi'];
+  charts.medium=new Chart(document.getElementById('mediumChart'),{type:'bar',data:{labels:mediumOrder,datasets:[{data:mediumOrder.map(function(m){return s.medium[m]||0;}),backgroundColor:['#4f46e5','#14b8a6','#f59e0b','#8b5cf6','#ec4899'],borderRadius:8,barThickness:36}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+  // Education
+  var eduOrder=['Pre-Primary','Primary (1-3)','Primary (4-5)','Middle (6-7)','Secondary (8-10)','Higher Secondary (11-12)','NIOS','Nursing','College / Degree','Vocational','Working','Internship','Other'];
+  charts.edu=new Chart(document.getElementById('eduChart'),{type:'bar',data:{labels:eduOrder,datasets:[{data:eduOrder.map(function(e){return s.eduCats[e]||0;}),backgroundColor:palette,borderRadius:6,barThickness:20}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#f1f5f9'}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  // House gender
+  var houseLabels=Object.keys(s.genderByHouse);
+  charts.houseGender=new Chart(document.getElementById('houseGenderChart'),{type:'bar',data:{labels:houseLabels,datasets:[{label:'Girls',data:houseLabels.map(function(h){return s.genderByHouse[h].Girl;}),backgroundColor:'#ec4899',borderRadius:4,barThickness:18},{label:'Boys',data:houseLabels.map(function(h){return s.genderByHouse[h].Boy;}),backgroundColor:'#3b82f6',borderRadius:4,barThickness:18}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:45}},y:{stacked:true,beginAtZero:true,grid:{color:'#f1f5f9'}}}}});
+  // Blood
+  var bloodOrder=['O+','B+','A+','AB+','A-'];
+  var bloodColors={'O+':'#ef4444','B+':'#3b82f6','A+':'#10b981','AB+':'#8b5cf6','A-':'#f59e0b'};
+  charts.blood=new Chart(document.getElementById('bloodChart'),{type:'doughnut',data:{labels:bloodOrder,datasets:[{data:bloodOrder.map(function(b){return s.blood[b]||0;}),backgroundColor:bloodOrder.map(function(b){return bloodColors[b];}),borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom'}}}});
+}
+
+function buildExitedCharts(es){
+  // Active count
+  var activeCount=activeChildren().length;
+  charts.chartActive=new Chart(document.getElementById('chartActive'),{type:'doughnut',data:{labels:['Active'],datasets:[{data:[activeCount],backgroundColor:['#10b981'],borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},title:{display:true,text:String(activeCount)+' children',font:{size:20,weight:'bold'},color:'#10b981',padding:{top:80}}}}});
+  
+  // Restored count + year-wise
+  charts.chartRestored=new Chart(document.getElementById('chartRestored'),{type:'bar',data:{labels:Object.keys(es.restoredYears).sort(),datasets:[{label:'Restored by Year',data:Object.keys(es.restoredYears).sort().map(function(y){return es.restoredYears[y];}),backgroundColor:'#8b5cf6',borderRadius:6,barThickness:30}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:String(es.restored)+' children restored',font:{size:14,weight:'bold'},color:'#8b5cf6',padding:{bottom:10}}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{stepSize:1}},x:{grid:{display:false},title:{display:true,text:'Restoration Year'}}}}});
+  
+  // Not Active count + year-wise
+  charts.chartNotActive=new Chart(document.getElementById('chartNotActive'),{type:'bar',data:{labels:Object.keys(es.notActiveYears).sort(),datasets:[{label:'Not Active by Year',data:Object.keys(es.notActiveYears).sort().map(function(y){return es.notActiveYears[y];}),backgroundColor:'#ef4444',borderRadius:6,barThickness:30}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:String(es.notActive)+' children not active',font:{size:14,weight:'bold'},color:'#ef4444',padding:{bottom:10}}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{stepSize:1}},x:{grid:{display:false},title:{display:true,text:'Admission Year'}}}}});
+  
+  // Transferred count + year-wise
+  charts.chartTransferred=new Chart(document.getElementById('chartTransferred'),{type:'bar',data:{labels:Object.keys(es.transferredYears).sort(),datasets:[{label:'Transferred by Year',data:Object.keys(es.transferredYears).sort().map(function(y){return es.transferredYears[y];}),backgroundColor:'#3b82f6',borderRadius:6,barThickness:30}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:String(es.transferred)+' children transferred',font:{size:14,weight:'bold'},color:'#3b82f6',padding:{bottom:10}}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{stepSize:1}},x:{grid:{display:false},title:{display:true,text:'Admission Year'}}}}});
+  
+  // Admissions by year (all children)
+  var admYears=Object.keys(es.admissionYears).sort();
+  charts.admissionYear=new Chart(document.getElementById('admissionYearChart'),{type:'bar',data:{labels:admYears,datasets:[{label:'Admissions',data:admYears.map(function(y){return es.admissionYears[y];}),backgroundColor:palette.slice(0,admYears.length),borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{stepSize:5}},x:{grid:{display:false},title:{display:true,text:'Admission Year (DOA)'}}}}});
+}
+
+function buildOtherCharts(s,sg){
+  // Institutions (active only)
+  var instEntries=Object.entries(s.institutions).sort(function(a,b){return b[1]-a[1];}).slice(0,15);
+  charts.institution=new Chart(document.getElementById('institutionChart'),{type:'bar',data:{labels:instEntries.map(function(e){return e[0];}),datasets:[{data:instEntries.map(function(e){return e[1];}),backgroundColor:palette.slice(0,instEntries.length),borderRadius:4,barThickness:16}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#f1f5f9'}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  // Status by gender (all)
+  var sgLabels=Object.keys(sg).filter(function(s2){return s2!=='Unknown';});
+  charts.statusGender=new Chart(document.getElementById('statusGenderChart'),{type:'bar',data:{labels:sgLabels,datasets:[{label:'Girls',data:sgLabels.map(function(s2){return sg[s2].Girl;}),backgroundColor:'#ec4899',borderRadius:6,barThickness:24},{label:'Boys',data:sgLabels.map(function(s2){return sg[s2].Boy;}),backgroundColor:'#3b82f6',borderRadius:6,barThickness:24}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{stepSize:10}},x:{grid:{display:false},ticks:{font:{size:10}}}}}});
+}
+
+// ===== UPDATE ALL =====
+function recalcAndUpdateAll(){
+  var as=calcActiveStats();
+  var es=calcExitedStats();
+  var sg=calcStatusGender();
+  // KPIs
+  var kpiEls=document.querySelectorAll('.kpi-value');
+  if(kpiEls[0])kpiEls[0].textContent=allChildren.length;
+  if(kpiEls[1])kpiEls[1].textContent=as.girls+(allChildren.length-as.total-as.girls>0?allChildren.filter(function(c){return c.gender==='Girl';}).length-as.girls:0);
+  // Simpler: just count all
+  var allGirls=allChildren.filter(function(c){return c.gender==='Girl';}).length;
+  var allBoys=allChildren.length-allGirls;
+  if(kpiEls[0])kpiEls[0].textContent=allChildren.length;
+  if(kpiEls[1])kpiEls[1].textContent=allGirls;
+  if(kpiEls[2])kpiEls[2].textContent=allBoys;
+  if(kpiEls[3])kpiEls[3].textContent=as.total;
+  if(kpiEls[4])kpiEls[4].textContent=es.restored+es.notActive+es.transferred;
+  if(kpiEls[5])kpiEls[5].textContent=as.avgAge;
+  // Section badges
+  var acEl=document.getElementById('activeCount');if(acEl)acEl.textContent=as.total+' children';
+  var ecEl=document.getElementById('exitedCount');if(ecEl)ecEl.textContent=(es.restored+es.notActive+es.transferred)+' children';
+  // Rebuild charts
+  Object.keys(charts).forEach(function(k){if(charts[k]){charts[k].destroy();charts[k]=null;}});
+  buildAllCharts();
+  // House filter
+  var hf=document.getElementById('houseFilter'),ch=hf.value;
+  var houses=Array.from(new Set(allChildren.map(function(c){return c.house;}).filter(Boolean))).sort();
+  hf.innerHTML='<option value="">All Houses</option>';houses.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h;hf.appendChild(o);});hf.value=ch;
+  filterTable();
+}
+
+// ===== TABLE =====
+function getStatusClass(status){if(!status)return 'status-unknown';var s=status.toLowerCase();if(s==='active')return 'status-active';if(s.indexOf('restored')>=0)return 'status-restored';if(s==='not active')return 'status-notactive';return 'status-unknown';}
+function dv(v){return (v||v===0)?v:'\u2014';}
+var STORAGE_KEY='childrenHomeDashboard2026';
+function saveToStorage(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(allChildren));}catch(e){}}
+function loadFromStorage(){try{var s=localStorage.getItem(STORAGE_KEY);if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0){allChildren.length=0;p.forEach(function(c){allChildren.push(c);});return true;}}}catch(e){}return false;}
+
+function renderTable(data){
+  var tbody=document.getElementById('tableBody');
+  tbody.innerHTML='';
+  if(data.length===0){tbody.innerHTML='<tr><td colspan="20" style="text-align:center;padding:30px;color:var(--text-light);">No children found matching your filters.</td></tr>';return;}
+  data.forEach(function(child,idx){
+    var realIdx=allChildren.indexOf(child);
+    var row=document.createElement('tr');
+    var gi=child.gender==='Girl'?'\uD83D\uDE3A Girl':'\uD83D\uDE42 Boy';
+    var ac=child.aadhar?'<span style="font-family:monospace;font-size:0.76rem;">'+child.aadhar+'</span>':'\u2014';
+    var rc=child.remark?(child.remark.length>30?child.remark.substring(0,30)+'...':child.remark):'\u2014';
+    row.innerHTML='<td>'+(idx+1)+'</td><td>'+dv(child.regNo)+'</td><td style="font-weight:600;">'+dv(child.name)+'</td><td>'+gi+'</td><td>'+dv(child.age)+'</td><td>'+dv(child.dob)+'</td><td>'+dv(child.house)+'</td><td><span class="status-badge '+getStatusClass(child.status)+'">'+dv(child.status)+'</span></td><td>'+dv(child.parental)+'</td><td>'+dv(child.doa)+'</td><td>'+dv(child.dor)+'</td><td>'+dv(child.restorationDate)+'</td><td>'+dv(child.class)+'</td><td>'+dv(child.medium)+'</td><td>'+dv(child.institution)+'</td><td>'+dv(child.caseNo)+'</td><td>'+dv(child.blood)+'</td><td>'+ac+'</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="'+(child.remark||'')+'">'+rc+'</td><td class="action-cell"><button class="btn-action btn-edit" onclick="openModal(\'edit\','+realIdx+')">\u270F\uFE0F Edit</button><button class="btn-action btn-delete" onclick="deleteChild('+realIdx+')">\uD83D\uDDD1\uFE0F Delete</button></td>';
+    tbody.appendChild(row);
+  });
+}
+
+function openModal(mode,idx){
+  var overlay=document.getElementById('modalOverlay');
+  var title=document.getElementById('modalTitle');
+  var saveBtn=document.getElementById('modalSaveBtn');
+  if(mode==='add'){
+    title.textContent='\u2795 Add New Child';saveBtn.textContent='Add Child';editIndex=-1;
+    ['fName','fRegNo','fAge','fDob','fDoa','fDor','fRestoration','fClass','fInstitution','fCaseNo','fAadhar','fRemark'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('fGender').value='Girl';document.getElementById('fHouse').value='House 8';
+    document.getElementById('fStatus').value='Active';document.getElementById('fParental').value='Both Parents';
+    document.getElementById('fMedium').value='';document.getElementById('fBlood').value='';
+  }else if(mode==='edit'){
+    var c=allChildren[idx];if(!c)return;
+    title.textContent='\u270F\uFE0F Edit Child';saveBtn.textContent='Save Changes';editIndex=idx;
+    document.getElementById('fName').value=c.name||'';document.getElementById('fRegNo').value=c.regNo||'';
+    document.getElementById('fGender').value=c.gender||'Girl';document.getElementById('fAge').value=c.age||'';
+    document.getElementById('fDob').value=c.dob||'';document.getElementById('fHouse').value=c.house||'House 8';
+    document.getElementById('fStatus').value=c.status||'Active';document.getElementById('fParental').value=c.parental||'Both Parents';
+    document.getElementById('fDoa').value=c.doa||'';document.getElementById('fDor').value=c.dor||'';
+    document.getElementById('fRestoration').value=c.restorationDate||'';document.getElementById('fClass').value=c.class||'';
+    document.getElementById('fMedium').value=c.medium||'';document.getElementById('fInstitution').value=c.institution||'';
+    document.getElementById('fCaseNo').value=c.caseNo||'';document.getElementById('fBlood').value=c.blood||'';
+    document.getElementById('fAadhar').value=c.aadhar||'';document.getElementById('fRemark').value=c.remark||'';
+  }
+  overlay.classList.add('active');document.getElementById('fName').focus();
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('active');editIndex=-1;}
+
+function saveChild(){
+  var name=document.getElementById('fName').value.trim();
+  if(!name){showToast('\u26A0\uFE0F Name is required!','error');document.getElementById('fName').focus();return;}
+  var child={name:name,gender:document.getElementById('fGender').value,
+    age:document.getElementById('fAge').value?parseInt(document.getElementById('fAge').value):null,
+    house:document.getElementById('fHouse').value,status:document.getElementById('fStatus').value,
+    parental:document.getElementById('fParental').value,
+    class:document.getElementById('fClass').value.trim()||null,
+    medium:document.getElementById('fMedium').value||null,
+    institution:document.getElementById('fInstitution').value.trim()||null,
+    blood:document.getElementById('fBlood').value||null,
+    regNo:document.getElementById('fRegNo').value.trim()||null,
+    dob:document.getElementById('fDob').value.trim()||null,
+    doa:document.getElementById('fDoa').value.trim()||null,
+    dor:document.getElementById('fDor').value.trim()||null,
+    caseNo:document.getElementById('fCaseNo').value.trim()||null,
+    aadhar:document.getElementById('fAadhar').value.trim()||null,
+    restorationDate:document.getElementById('fRestoration').value.trim()||null,
+    remark:document.getElementById('fRemark').value.trim()||null};
+  if(editIndex===-1){allChildren.push(child);showToast('\u2705 '+child.name+' added!','success');}
+  else{allChildren[editIndex]=child;showToast('\u2705 '+child.name+' updated!','success');}
+  saveToStorage();recalcAndUpdateAll();closeModal();
+}
+
+function deleteChild(idx){
+  var c=allChildren[idx];if(!c)return;
+  if(confirm('Delete "'+c.name+'"?\\n\\nThis cannot be undone.')){
+    allChildren.splice(idx,1);saveToStorage();showToast('\uD83D\uDDD1\uFE0F '+c.name+' deleted.','info');recalcAndUpdateAll();
+  }
+}
+function showToast(msg,type){
+  var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'info');t.classList.add('show');
+  clearTimeout(t._timer);t._timer=setTimeout(function(){t.classList.remove('show');},3000);
+}
+
+function filterTable(){
+  var search=document.getElementById('searchInput').value.toLowerCase();
+  var gender=document.getElementById('genderFilter').value;
+  var status=document.getElementById('statusFilter').value;
+  var house=document.getElementById('houseFilter').value;
+  renderTable(allChildren.filter(function(c){
+    if(search&&(c.name||'').toLowerCase().indexOf(search)<0)return false;
+    if(gender&&c.gender!==gender)return false;
+    if(status&&c.status!==status)return false;
+    if(house&&c.house!==house)return false;
+    return true;
+  }));
+}
+
+// ===== EXPORT / IMPORT =====
+function exportData(format){
+  var dataStr;
+  var filename;
+  if(format==='json'){
+    dataStr=JSON.stringify(allChildren,null,2);
+    filename='children_data_'+new Date().toISOString().slice(0,10)+'.json';
+  }else{
+    // CSV
+    var headers=['Sr No','Reg No','Name','Gender','Age','DOB','House','Status','Parental Status','DOA','DOR','Restoration Date','Class','Medium','Institution','Case No','Blood Group','Aadhar No','Remark'];
+    var rows=[headers.join(',')];
+    allChildren.forEach(function(c,i){
+      var vals=[i+1,c.regNo||'',c.name||'',c.gender||'',c.age||'',c.dob||'',c.house||'',c.status||'',c.parental||'',c.doa||'',c.dor||'',c.restorationDate||'',c.class||'',c.medium||'',c.institution||'',c.caseNo||'',c.blood||'',c.aadhar||'',(c.remark||'').replace(/,/g,';')];
+      rows.push(vals.map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(','));
+    });
+    dataStr=rows.join('\n');
+    filename='children_data_'+new Date().toISOString().slice(0,10)+'.csv';
+  }
+  var blob=new Blob([dataStr],{type:format==='json'?'application/json':'text/csv'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('\u2705 Data exported as '+format.toUpperCase()+'!','success');
+}
+
+function importData(event){
+  var file=event.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var content=e.target.result;
+      var imported;
+      if(file.name.endsWith('.json')){
+        imported=JSON.parse(content);
+      }else{
+        // CSV parse
+        var lines=content.split('\n');
+        var headers=lines[0].split(',').map(function(h){return h.replace(/^"|"$/g,'');});
+        imported=[];
+        for(var i=1;i<lines.length;i++){
+          if(!lines[i].trim())continue;
+          var vals=[];
+          var inQuote=false,cur='';
+          for(var j=0;j<lines[i].length;j++){
+            var ch=lines[i][j];
+            if(ch==='"'){inQuote=!inQuote;}
+            else if(ch===','&&!inQuote){vals.push(cur);cur='';}
+            else{cur+=ch;}
+          }
+          vals.push(cur);
+          imported.push({
+            name:vals[2]||null,gender:vals[3]||null,age:vals[4]?parseInt(vals[4]):null,
+            dob:vals[5]||null,house:vals[6]||null,status:vals[7]||null,parental:vals[8]||null,
+            doa:vals[9]||null,dor:vals[10]||null,restorationDate:vals[11]||null,
+            class:vals[12]||null,medium:vals[13]||null,institution:vals[14]||null,
+            caseNo:vals[15]||null,blood:vals[16]||null,aadhar:vals[17]||null,remark:vals[18]||null,
+            regNo:vals[1]||null
+          });
+        }
+      }
+      if(!Array.isArray(imported)||imported.length===0){showToast('\u274C Invalid file format!','error');return;}
+      if(confirm('Import '+imported.length+' records? This will replace all current data.')){
+        allChildren.length=0;imported.forEach(function(c){allChildren.push(c);});
+        saveToStorage();recalcAndUpdateAll();
+        showToast('\u2705 '+imported.length+' records imported!','success');
+      }
+    }catch(err){showToast('\u274C Error importing: '+err.message,'error');}
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){closeModal();closePwdModal();}
+  if(e.key==='Enter'&&document.getElementById('modalOverlay').classList.contains('active')){if(document.activeElement.tagName!=='TEXTAREA')saveChild();}
+});
+</script>
+
+<!-- Google Sheets Sync (optional - remove if not using Google Sheets) -->
+<script src="assets/google-sheets-sync.js"></script>
+</body>
+</html>
